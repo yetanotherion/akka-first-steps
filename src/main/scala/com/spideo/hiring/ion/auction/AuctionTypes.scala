@@ -5,7 +5,10 @@ object AuctionTypes {
   type Item = Int
   type Price = Int
   type Bidder = Int
+  type AuctionId = Int
+  type AuctioneerId = Int
   sealed abstract class Increment
   case class Constant(value: Price) extends Increment
   case class Error(msg:String)
+  final case class Bid(bidder: Bidder, price: Price)
 }

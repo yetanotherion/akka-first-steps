@@ -1,7 +1,8 @@
-package com.spideo.hiring.ion.auction
+package com.spideo.hiring.ion.actors
 
 import akka.actor.{Actor, ActorLogging, Props}
 import com.spideo.hiring.ion.auction.AuctionTypes.Error
+import com.spideo.hiring.ion.auction.{AuctionRule, Closed, Openned, Planned}
 sealed trait State
 
 final case class PlannedState(notStarted: Planned) extends State
