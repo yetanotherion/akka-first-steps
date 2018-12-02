@@ -31,9 +31,17 @@ class Auction(rule: AuctionRule) extends Actor with ActorLogging {
   override def preStart(): Unit = log.info("Auction started")
   override def postStop(): Unit = log.info("Auction stopped")
 
-  override def receive: Receive = {
-    case PlannedMessage(plannedMessage) => {
+  override def receive: Receive = partialUpdateState.andThen(receiveMsg)
+
+  def partialUpdateState: PartialFunction[Any, Any] = {
+    case msg => {
       updateState()
+      msg
+    }
+  }
+
+  def receiveMsg: Receive = {
+    case PlannedMessage(plannedMessage) => {
       state match {
         case PlannedState(planned) =>
           val res = planned.receive(plannedMessage)
@@ -42,13 +50,12 @@ class Auction(rule: AuctionRule) extends Actor with ActorLogging {
       }
     }
     case OpennedMessage(opennedMessage) => {
-      updateState()
       state match {
         case OpennedState(openned) => {
           val res = openned.receive(opennedMessage)
           sender() ! Answer(res)
         }
-        case (PlannedState(_) | ClosedState(_)) => sender() != messageNotSupportedAnswer
+        case PlannedState(_) | ClosedState(_) => sender() != messageNotSupportedAnswer
       }
     }
   }
