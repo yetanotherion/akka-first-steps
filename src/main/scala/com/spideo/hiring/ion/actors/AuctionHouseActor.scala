@@ -34,8 +34,8 @@ object AuctionHouseActor {
     }
   }
 
-  private def toIncrement(param: String): Increment = {
-    Constant(0)
+  private def toIncrement(param: Integer): Increment = {
+    Constant(param)
   }
 
   final case object StartAuction
@@ -59,18 +59,18 @@ class AuctionHouseActor extends Actor with ActorLogging {
 
   override def receive = {
     case CreateAuction(auctioneerId, auctionId, auctionRuleParams) => {
-        toAuctionRule(auctionRuleParams) match {
-          case Success(auctionRule) =>
-            val ok = createAuction(auctioneerId, auctionId, auctionRule)
-            if (ok) {
-              sender() ! CreateAuctionAnswer(StatusCodes.Created, s"Auction $auctionId created by $auctioneerId")
-            } else {
-              sender() ! CreateAuctionAnswer(StatusCodes.Conflict,
-                s"Auction $auctionId was already created by $auctioneerId")
-            }
-          case Failure(e) =>
-            sender() ! CreateAuctionAnswer(StatusCodes.BadRequest, e.getMessage)
-        }
+      toAuctionRule(auctionRuleParams) match {
+        case Success(auctionRule) =>
+          val ok = createAuction(auctioneerId, auctionId, auctionRule)
+          if (ok) {
+            sender() ! CreateAuctionAnswer(StatusCodes.Created, s"Auction $auctionId created by $auctioneerId")
+          } else {
+            sender() ! CreateAuctionAnswer(StatusCodes.Conflict,
+              s"Auction $auctionId was already created by $auctioneerId")
+          }
+        case Failure(e) =>
+          sender() ! CreateAuctionAnswer(StatusCodes.BadRequest, e.getMessage)
+      }
     }
   }
 

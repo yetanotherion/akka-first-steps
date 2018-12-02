@@ -20,7 +20,7 @@ import scala.util.{Failure, Success}
 
 final case class AuctionRuleParams(startDate: String, endDate: String,
   item: Item, initialPrice: Item,
-  increment: String)
+  increment: Int)
 
 trait AuctionHouseRoutes extends JsonSupport {
   // we leave these abstract, since they will be provided by the App
