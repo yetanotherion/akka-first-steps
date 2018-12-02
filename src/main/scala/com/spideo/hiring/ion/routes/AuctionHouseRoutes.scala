@@ -16,6 +16,8 @@ import scala.concurrent.Future
 import akka.pattern.ask
 import akka.util.Timeout
 
+import scala.util.{Failure, Success}
+
 final case class AuctionRuleParams(startDate: String, endDate: String,
   item: Item, initialPrice: Item,
   increment: String)
@@ -38,10 +40,11 @@ trait AuctionHouseRoutes extends JsonSupport {
             concat(
               post {
                 entity(as[AuctionRuleParams]) { auctionRuleParams =>
-                  val auctionCreated: Future[CreateAuctionAnswer] =
+                  val (auctionCreated: Future[CreateAuctionAnswer]) =
                     (auctionHouseActor ? CreateAuction(auctioneerId, auctionId, auctionRuleParams)).mapTo[CreateAuctionAnswer]
-                  onComplete(auctionCreated) { answer =>
-                      complete((StatusCodes.Created, answer))
+                  onComplete(auctionCreated) {
+                    case Success(answer) => complete((answer.status, answer.msg))
+                    case Failure(ex) => complete((StatusCodes.InternalServerError, s"Got exception ${ex.getMessage()}"))
                   }
                 }
               },

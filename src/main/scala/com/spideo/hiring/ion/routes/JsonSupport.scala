@@ -8,5 +8,4 @@ trait JsonSupport extends SprayJsonSupport {
   import DefaultJsonProtocol._
 
   implicit val actionRuleParamsJsonformat = jsonFormat5(AuctionRuleParams)
-  implicit val createAuctionAnswerJsonFormat = jsonFormat2(CreateAuctionAnswer)
 }
