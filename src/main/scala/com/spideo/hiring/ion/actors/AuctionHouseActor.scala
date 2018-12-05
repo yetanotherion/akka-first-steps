@@ -4,9 +4,10 @@ import java.text.ParseException
 
 import akka.actor.{Actor, ActorLogging, Props}
 import akka.http.scaladsl.model.{StatusCode, StatusCodes}
+import com.spideo.hiring.ion.actors.Auction.PlannedMessage
 import com.spideo.hiring.ion.auction.AuctionTypes._
 import com.spideo.hiring.ion.auction.{AuctionRule, Auctioneer}
-import com.spideo.hiring.ion.routes.AuctionRuleParams
+import com.spideo.hiring.ion.routes.{AuctionRuleParams, AuctionRuleParamsUpdate}
 
 import scala.util.{Failure, Success, Try}
 
@@ -22,25 +23,10 @@ object AuctionHouseActor {
     }
   }
 
-  private val dateFormat = new java.text.SimpleDateFormat("yyyy/MM/dd-HH:mm")
-
-  private def toAuctionDate(date: String): AuctionDate = {
-    try {
-      val res = dateFormat.parse(date)
-      val epoch = res.getTime()
-      epoch / 1000
-    } catch {
-      case e: ParseException => throw new IllegalArgumentException(s"$date is an invalid date")
-    }
-  }
-
-  private def toIncrement(param: Integer): Increment = {
-    Constant(param)
-  }
-
   final case object StartAuction
 
   final case class CreateAuction(auctioneerId: AuctioneerId, auctionId: AuctionId, auctionRule: AuctionRuleParams)
+  final case class UpdateAuction(auctioneerId: AuctioneerId, auctionId: AuctionId, auctionRule: AuctionRuleParamsUpdate)
 
   final case class CreateAuctionAnswer(status: StatusCode, msg: String)
 
@@ -70,6 +56,18 @@ class AuctionHouseActor extends Actor with ActorLogging {
           }
         case Failure(e) =>
           sender() ! CreateAuctionAnswer(StatusCodes.BadRequest, e.getMessage)
+      }
+    }
+    case UpdateAuction(auctioneerId, auctionId, auctionRuleParamsUpdate) => {
+      val auctioneer = getAuctioneer(auctioneerId)
+      auctioneer.get(auctionId) match {
+        case Some(actor) => {
+          log.info(s"Forwarding $auctionRuleParamsUpdate")
+          actor forward PlannedMessage(auctionRuleParamsUpdate)
+        }
+        case None => {
+          sender () ! CreateAuctionAnswer(StatusCodes.NotFound, s"Auction $auctionId was not created by $auctioneerId")
+        }
       }
     }
   }

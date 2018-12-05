@@ -7,6 +7,8 @@ scalaVersion := "2.12.6"
 lazy val akkaVersion = "2.5.18"
 lazy val akkaHttpVersion = "10.1.5"
 
+scalacOptions += "-Xfatal-warnings"
+
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % akkaVersion,
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion,

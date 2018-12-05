@@ -1,6 +1,6 @@
 package com.spideo.hiring.ion.auction
 
-import com.spideo.hiring.ion.auction.AuctionTypes.{Bid, Constant, Error}
+import com.spideo.hiring.ion.auction.AuctionTypes.{Bid, Bidder, Constant, Error}
 
 import scala.collection.mutable.ListBuffer
 
@@ -16,7 +16,7 @@ class Openned(notStarted: Planned)
   var bids = ListBuffer[Bid]()
   var currentPrice = notStarted.rule.initialPrice
   val rule = notStarted.rule
-  val bidders = notStarted.getBidders()
+  val bidders = scala.collection.mutable.Set[Bidder]()
 
   def receive(message: Message): Option[Error] = {
     message match {

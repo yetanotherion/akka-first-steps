@@ -2,8 +2,8 @@ package com.spideo.hiring.ion.routes
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
-import com.spideo.hiring.ion.actors.AuctionHouseActor.{CreateAuction, CreateAuctionAnswer}
-import com.spideo.hiring.ion.auction.AuctionTypes.Item
+import com.spideo.hiring.ion.actors.AuctionHouseActor.{CreateAuction, CreateAuctionAnswer, UpdateAuction}
+import com.spideo.hiring.ion.auction.AuctionTypes.{Item, Price}
 
 import scala.concurrent.duration._
 import akka.http.scaladsl.server.Directives._
@@ -15,15 +15,19 @@ import akka.http.scaladsl.server.directives.RouteDirectives.complete
 import scala.concurrent.Future
 import akka.pattern.ask
 import akka.util.Timeout
+import com.spideo.hiring.ion.actors.Auction.Answer
 
 import scala.util.{Failure, Success}
 
 final case class AuctionRuleParams(startDate: String, endDate: String,
-  item: Item, initialPrice: Item,
+  item: Item, initialPrice: Price,
   increment: Int)
 
+final case class AuctionRuleParamsUpdate(startDate: Option[String], endDate: Option[String],
+  item: Option[Item], initialPrice: Option[Price],
+  increment: Option[Int])
+
 trait AuctionHouseRoutes extends JsonSupport {
-  // we leave these abstract, since they will be provided by the App
   implicit def system: ActorSystem
 
   lazy val log = Logging(system, classOf[AuctionHouseRoutes])
@@ -48,6 +52,19 @@ trait AuctionHouseRoutes extends JsonSupport {
                   }
                 }
               },
+              put {
+                entity(as[AuctionRuleParamsUpdate]) { auctionRuleParamsUpdate =>
+                    val (auctionUpdated: Future[Answer]) =
+                      (auctionHouseActor ? UpdateAuction(auctioneerId, auctionId, auctionRuleParamsUpdate)).mapTo[Answer]
+                    onComplete(auctionUpdated) {
+                      case Success(answer) => answer.error match {
+                        case None => complete(StatusCodes.OK)
+                        case Some(error) => complete((StatusCodes.BadRequest, error.msg))
+                      }
+                      case Failure(ex) => complete((StatusCodes.InternalServerError, s"Got exception ${ex.getMessage()}"))
+                    }
+                }
+              }
             )
           },
         )

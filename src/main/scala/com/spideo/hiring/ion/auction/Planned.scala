@@ -1,11 +1,40 @@
 package com.spideo.hiring.ion.auction
 
 import com.spideo.hiring.ion.auction.AuctionTypes._
+import com.spideo.hiring.ion.routes.AuctionRuleParamsUpdate
 
 object Planned {
-  sealed abstract class Message
-  final case class NewStartDate(newStartDate: AuctionDate) extends Message
-  final case class NewEndDate(newStartDate: AuctionDate) extends Message
+  type PlannedMessage = AuctionRuleParamsUpdate
+
+  sealed abstract class RawUpdate
+  final case class NewRawStartDate(newStartDate: String) extends RawUpdate
+  final case class NewRawEndDate(newEndDate: String) extends RawUpdate
+  final case class NewRawInitialPrice(newInitialPrice: Price) extends RawUpdate
+
+  sealed abstract class Update
+
+  final case class NewStartDate(newStartDate: AuctionDate) extends Update
+  final case class NewEndDate(newEndDate: AuctionDate) extends Update
+  final case class NewInitialPrice(newInitialPrice: Price) extends Update
+
+  type UpdateOrError = Either[List[Update], List[String]]
+
+  val emptyUpdateOrError: UpdateOrError = Left(List())
+
+  def addMessage(res: UpdateOrError, message: Update) = {
+    res match {
+      case Left(ok) => Left(message :: ok)
+      case Right(errors) => Right(errors)
+    }
+  }
+
+  def addError(res: UpdateOrError, error: String) = {
+    res match {
+      case Left(ok) => Right(List(error))
+      case Right(errors) => Right(error :: errors)
+    }
+  }
+  type PlannedMessageAnswer = Option[Error]
 }
 
 final case class AuctionRule(
@@ -14,49 +43,106 @@ final case class AuctionRule(
 
 class Planned(val rule: AuctionRule) {
   import Planned._
-  private var bidders = scala.collection.mutable.Set[Bidder]()
 
-  def getBidders(): Set[Bidder] = {
-    bidders.toSet[Bidder]
-  }
-
-  def receive(message: Message): Option[Error] = {
-    message match {
-      case NewStartDate(startDate) => receiveNewStartDate(startDate)
-      case NewEndDate(endDate) => receiveNewEndDate(endDate)
+  def receive(message: PlannedMessage): PlannedMessageAnswer = {
+    val instructions = createUpdateInstructions(message)
+    validateRawUpdates(instructions) match {
+      case Left(updates) => {
+        implementUpdates(updates)
+        None
+      }
+      case Right(error) => Some(Error(error.mkString(";")))
     }
   }
 
-  private def receiveNewBidder(bidder: Bidder) = {
-    bidders.add(bidder)
+  private def createUpdateInstructions(message: PlannedMessage) : List[RawUpdate] = {
+    val updateStart: List[RawUpdate] => List[RawUpdate] = { l =>
+      message.startDate match {
+        case None => l
+        case Some(startDate) => {
+          NewRawStartDate(startDate) :: l
+        }
+      }
+    }
+    val updateEnd: List[RawUpdate] => List[RawUpdate] = { l =>
+      message.endDate match {
+        case None => l
+        case Some(endDate) => {
+          NewRawEndDate(endDate) :: l
+        }
+      }
+    }
+    List(updateStart, updateEnd).foldLeft(List[RawUpdate]()) {
+      (l, f) => f(l)
+    }
   }
 
-  private def receiveNewStartDate(newStartDate: AuctionDate): Option[Error] = {
+  private def validateRawUpdates(updates: List[RawUpdate]): UpdateOrError = {
+    def validateRawUpdate(res: UpdateOrError, update: RawUpdate): UpdateOrError = {
+      update match {
+        case NewRawStartDate(newStartDate) => {
+          tryToAuctionDate(newStartDate) match {
+            case Left(ok) => validateNewStartDate(ok) match {
+              case None => addMessage(res, NewStartDate(ok))
+              case Some(error) => addError(res, error)
+            }
+            case Right(error) => addError(res, error)
+          }
+        }
+        case NewRawEndDate(newEndDate) => {
+          tryToAuctionDate(newEndDate) match {
+            case Left(ok) => validateNewEndDate(ok) match {
+              case None => addMessage(res, NewEndDate(ok))
+              case Some(error) => addError(res, error)
+            }
+            case Right(error) => addError(res, error)
+          }
+        }
+        case NewRawInitialPrice(newInitialPrice) => {
+          validateNewInitialPrice(newInitialPrice) match {
+            case None => addMessage(res, NewInitialPrice(newInitialPrice))
+            case Some(error) => addError(res, error)
+          }
+        }
+      }
+    }
+    updates.foldLeft(emptyUpdateOrError)(validateRawUpdate)
+  }
+
+  private def implementUpdates(updates: List[Update]): Unit = {
+    def implementUpdate(update: Update): Unit = {
+      update match {
+        case NewStartDate(newStartDate) => rule.startDate = newStartDate
+        case NewEndDate(newEndDate) => rule.endDate = newEndDate
+        case NewInitialPrice(newInitialPrice) => rule.initialPrice = newInitialPrice
+      }
+    }
+    updates.foreach(implementUpdate)
+  }
+
+  private def validateNewStartDate(newStartDate: AuctionDate): Option[String] = {
     if (newStartDate > rule.endDate) {
-      Some(Error(s"newStartDate: $newStartDate > endDate: ${rule.endDate}"))
+      Some(s"newStartDate: $newStartDate > endDate: ${rule.endDate}")
+    } else {
+      None
     }
-    rule.startDate = newStartDate
-    None
   }
 
-  private def receiveNewEndDate(newEndDate: AuctionDate): Option[Error] = {
+  private def validateNewEndDate(newEndDate: AuctionDate): Option[String] = {
     if (newEndDate < rule.startDate) {
-      Some(Error(s"newEndDate: $newEndDate < startDate: ${rule.startDate}"))
+      Some(s"newEndDate: $newEndDate < startDate: ${rule.startDate}")
+    } else {
+      None
     }
-    rule.endDate = newEndDate
-    None
   }
 
 
-  private def receiveNewInitialPrice(newInitialPrice: Price): Option[Error] = {
+  private def validateNewInitialPrice(newInitialPrice: Price): Option[String] = {
     if (newInitialPrice < 0 ) {
-      Some(Error(s"$newInitialPrice is negative"))
+      Some(s"$newInitialPrice is negative")
+    } else {
+      None
     }
-    rule.initialPrice = newInitialPrice
-    None
   }
 
-  private def receiveNewIncrement(newIncrement: Increment): Unit  = {
-    rule.increment = newIncrement
-  }
 }
