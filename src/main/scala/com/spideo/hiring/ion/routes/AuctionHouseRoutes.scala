@@ -3,7 +3,7 @@ package com.spideo.hiring.ion.routes
 import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
 import com.spideo.hiring.ion.actors.AuctionHouseActor.{CreateAuction, UpdateAuction}
-import com.spideo.hiring.ion.auction.AuctionTypes.{CreateAuctionAnswer, Item, Price, UpdateAuctionAnswer}
+import com.spideo.hiring.ion.auction.AuctionTypes.{AuctionRuleAnswer, Item, Price}
 
 import scala.concurrent.duration._
 import akka.http.scaladsl.server.Directives._
@@ -35,6 +35,16 @@ trait AuctionHouseRoutes extends JsonSupport {
 
   implicit lazy val timeout = Timeout(5.seconds)
 
+  def completeAuctionRuleAnswer(answer: Future[AuctionRuleAnswer]) = {
+    onComplete(answer) {
+      case Success(answer) => answer.msg match {
+        case Left(r) => complete((answer.status, r))
+        case Right(r) => complete((answer.status, r))
+      }
+      case Failure(ex) => complete((StatusCodes.InternalServerError, s"Got exception ${ex.getMessage()}"))
+    }
+  }
+
   lazy val auctionHouseRoutes: Route =
     pathPrefix("auctioneer" / IntNumber / "auction" / IntNumber) {
       (auctioneerId, auctionId) =>
@@ -43,25 +53,16 @@ trait AuctionHouseRoutes extends JsonSupport {
             concat(
               post {
                 entity(as[AuctionRuleParams]) { auctionRuleParams =>
-                  val (auctionCreated: Future[CreateAuctionAnswer]) =
-                    (auctionHouseActor ? CreateAuction(auctioneerId, auctionId, auctionRuleParams)).mapTo[CreateAuctionAnswer]
-                  onComplete(auctionCreated) {
-                    case Success(answer) => complete((answer.status, answer.msg))
-                    case Failure(ex) => complete((StatusCodes.InternalServerError, s"Got exception ${ex.getMessage()}"))
-                  }
+                  val (auctionCreated: Future[AuctionRuleAnswer]) =
+                    (auctionHouseActor ? CreateAuction(auctioneerId, auctionId, auctionRuleParams)).mapTo[AuctionRuleAnswer]
+                  completeAuctionRuleAnswer(auctionCreated)
                 }
               },
               put {
                 entity(as[AuctionRuleParamsUpdate]) { auctionRuleParamsUpdate =>
-                    val (auctionUpdated: Future[UpdateAuctionAnswer]) =
-                      (auctionHouseActor ? UpdateAuction(auctioneerId, auctionId, auctionRuleParamsUpdate)).mapTo[UpdateAuctionAnswer]
-                    onComplete(auctionUpdated) {
-                      case Success(answer) => answer.msg match {
-                        case Left(r) => complete((answer.status, r))
-                        case Right(r) => complete((answer.status, r))
-                      }
-                      case Failure(ex) => complete((StatusCodes.InternalServerError, s"Got exception ${ex.getMessage()}"))
-                    }
+                    val (auctionUpdated: Future[AuctionRuleAnswer]) =
+                      (auctionHouseActor ? UpdateAuction(auctioneerId, auctionId, auctionRuleParamsUpdate)).mapTo[AuctionRuleAnswer]
+                  completeAuctionRuleAnswer(auctionUpdated)
                 }
               }
             )

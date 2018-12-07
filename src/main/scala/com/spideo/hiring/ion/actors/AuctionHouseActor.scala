@@ -45,13 +45,13 @@ class AuctionHouseActor extends Actor with ActorLogging {
         case Success(auctionRule) =>
           val ok = createAuction(auctioneerId, auctionId, auctionRule)
           if (ok) {
-            sender() ! CreateAuctionAnswer(StatusCodes.Created, s"Auction $auctionId created by $auctioneerId")
+            sender() ! AuctionRuleAnswer(StatusCodes.Created, Left(auctionRule))
           } else {
-            sender() ! CreateAuctionAnswer(StatusCodes.Conflict,
-              s"Auction $auctionId was already created by $auctioneerId")
+            sender() ! AuctionRuleAnswer(StatusCodes.Conflict, Right(
+              s"Auction $auctionId was already created by $auctioneerId"))
           }
         case Failure(e) =>
-          sender() ! CreateAuctionAnswer(StatusCodes.BadRequest, e.getMessage)
+          sender() ! AuctionRuleAnswer(StatusCodes.BadRequest, Right(e.getMessage))
       }
     }
     case UpdateAuction(auctioneerId, auctionId, auctionRuleParamsUpdate) => {
@@ -62,7 +62,7 @@ class AuctionHouseActor extends Actor with ActorLogging {
           actor forward PlannedMessage(auctionRuleParamsUpdate)
         }
         case None => {
-          sender () ! CreateAuctionAnswer(StatusCodes.NotFound, s"Auction $auctionId was not created by $auctioneerId")
+          sender () ! AuctionRuleAnswer(StatusCodes.NotFound, Right(s"Auction $auctionId was not created by $auctioneerId"))
         }
       }
     }

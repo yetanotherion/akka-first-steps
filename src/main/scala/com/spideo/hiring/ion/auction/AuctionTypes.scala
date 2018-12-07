@@ -22,9 +22,7 @@ object AuctionTypes {
     var startDate: AuctionDate, var endDate: AuctionDate,
     var item: Item, var initialPrice: Price, var increment: Increment)
 
-  final case class CreateAuctionAnswer(status: StatusCode, msg: String)
-
-  final case class UpdateAuctionAnswer(status: StatusCode, msg: Either[AuctionRule, String])
+  final case class AuctionRuleAnswer(status: StatusCode, msg: Either[AuctionRule, String])
 
   private val dateFormat = new java.text.SimpleDateFormat("yyyy/MM/dd-HH:mm")
 

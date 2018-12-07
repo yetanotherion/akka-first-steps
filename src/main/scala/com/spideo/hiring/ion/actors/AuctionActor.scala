@@ -18,7 +18,6 @@ object Auction {
   final case class OpennedMessage(opennedMessage: Openned.Message)
 
   final case class Answer(error: Option[Error])
-
   def getCurrentTime(): Long = {
     System.currentTimeMillis / 1000
   }
