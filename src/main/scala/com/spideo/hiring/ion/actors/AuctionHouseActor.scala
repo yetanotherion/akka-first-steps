@@ -1,12 +1,10 @@
 package com.spideo.hiring.ion.actors
 
-import java.text.ParseException
-
 import akka.actor.{Actor, ActorLogging, Props}
-import akka.http.scaladsl.model.{StatusCode, StatusCodes}
+import akka.http.scaladsl.model.StatusCodes
 import com.spideo.hiring.ion.actors.Auction.PlannedMessage
 import com.spideo.hiring.ion.auction.AuctionTypes._
-import com.spideo.hiring.ion.auction.{AuctionRule, Auctioneer}
+import com.spideo.hiring.ion.auction.Auctioneer
 import com.spideo.hiring.ion.routes.{AuctionRuleParams, AuctionRuleParamsUpdate}
 
 import scala.util.{Failure, Success, Try}
@@ -27,8 +25,6 @@ object AuctionHouseActor {
 
   final case class CreateAuction(auctioneerId: AuctioneerId, auctionId: AuctionId, auctionRule: AuctionRuleParams)
   final case class UpdateAuction(auctioneerId: AuctioneerId, auctionId: AuctionId, auctionRule: AuctionRuleParamsUpdate)
-
-  final case class CreateAuctionAnswer(status: StatusCode, msg: String)
 
   //val errorInCreateAuction = CreateAuctionAnswer(None, msg="Got an error")
 }

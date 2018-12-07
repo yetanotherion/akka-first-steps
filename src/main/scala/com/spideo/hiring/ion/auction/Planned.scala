@@ -1,5 +1,6 @@
 package com.spideo.hiring.ion.auction
 
+import akka.http.scaladsl.model.StatusCodes
 import com.spideo.hiring.ion.auction.AuctionTypes._
 import com.spideo.hiring.ion.routes.AuctionRuleParamsUpdate
 
@@ -34,12 +35,8 @@ object Planned {
       case Right(errors) => Right(error :: errors)
     }
   }
-  type PlannedMessageAnswer = Option[Error]
+  type PlannedMessageAnswer = UpdateAuctionAnswer
 }
-
-final case class AuctionRule(
-  var startDate: AuctionDate, var endDate: AuctionDate,
-  var item: Item, var initialPrice: Price, var increment: Increment)
 
 class Planned(val rule: AuctionRule) {
   import Planned._
@@ -49,9 +46,9 @@ class Planned(val rule: AuctionRule) {
     validateRawUpdates(instructions) match {
       case Left(updates) => {
         implementUpdates(updates)
-        None
+        UpdateAuctionAnswer(StatusCodes.OK, Left(rule))
       }
-      case Right(error) => Some(Error(error.mkString(";")))
+      case Right(error) => UpdateAuctionAnswer(StatusCodes.BadRequest, Right(s"invalid request: ${error.mkString(";")}"))
     }
   }
 

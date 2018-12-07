@@ -1,8 +1,8 @@
 package com.spideo.hiring.ion.actors
 
 import akka.actor.{Actor, ActorLogging, Props}
-import com.spideo.hiring.ion.auction.AuctionTypes.Error
-import com.spideo.hiring.ion.auction.{AuctionRule, Closed, Openned, Planned}
+import com.spideo.hiring.ion.auction.AuctionTypes.{AuctionRule, Error}
+import com.spideo.hiring.ion.auction.{Closed, Openned, Planned}
 sealed trait State
 
 final case class PlannedState(notStarted: Planned) extends State
@@ -45,7 +45,7 @@ class Auction(rule: AuctionRule) extends Actor with ActorLogging {
       state match {
         case PlannedState(planned) =>
           val res = planned.receive(plannedMessage)
-          sender() ! Answer(res)
+          sender() ! res
         case OpennedState(_) | ClosedState(_) => sender() ! messageNotSupportedAnswer
       }
     }
@@ -55,7 +55,7 @@ class Auction(rule: AuctionRule) extends Actor with ActorLogging {
           val res = openned.receive(opennedMessage)
           sender() ! Answer(res)
         }
-        case PlannedState(_) | ClosedState(_) => sender() != messageNotSupportedAnswer
+        case PlannedState(_) | ClosedState(_) => sender() ! messageNotSupportedAnswer
       }
     }
   }

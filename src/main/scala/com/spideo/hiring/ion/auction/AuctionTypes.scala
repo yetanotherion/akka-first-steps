@@ -2,6 +2,8 @@ package com.spideo.hiring.ion.auction
 
 import java.text.ParseException
 
+import akka.http.scaladsl.model.StatusCode
+
 import scala.util.{Failure, Success, Try}
 
 object AuctionTypes {
@@ -11,10 +13,18 @@ object AuctionTypes {
   type Bidder = Int
   type AuctionId = Int
   type AuctioneerId = Int
-  sealed abstract class Increment
-  case class Constant(value: Price) extends Increment
+  final case class Increment(value: Price)
   case class Error(msg:String)
+
   final case class Bid(bidder: Bidder, price: Price)
+
+  final case class AuctionRule(
+    var startDate: AuctionDate, var endDate: AuctionDate,
+    var item: Item, var initialPrice: Price, var increment: Increment)
+
+  final case class CreateAuctionAnswer(status: StatusCode, msg: String)
+
+  final case class UpdateAuctionAnswer(status: StatusCode, msg: Either[AuctionRule, String])
 
   private val dateFormat = new java.text.SimpleDateFormat("yyyy/MM/dd-HH:mm")
 
@@ -37,6 +47,6 @@ object AuctionTypes {
   }
 
   def toIncrement(param: Integer): Increment = {
-    Constant(param)
+    Increment(param)
   }
 }

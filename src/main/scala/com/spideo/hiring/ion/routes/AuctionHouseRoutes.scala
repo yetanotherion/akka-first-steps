@@ -2,8 +2,8 @@ package com.spideo.hiring.ion.routes
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
-import com.spideo.hiring.ion.actors.AuctionHouseActor.{CreateAuction, CreateAuctionAnswer, UpdateAuction}
-import com.spideo.hiring.ion.auction.AuctionTypes.{Item, Price}
+import com.spideo.hiring.ion.actors.AuctionHouseActor.{CreateAuction, UpdateAuction}
+import com.spideo.hiring.ion.auction.AuctionTypes.{CreateAuctionAnswer, Item, Price, UpdateAuctionAnswer}
 
 import scala.concurrent.duration._
 import akka.http.scaladsl.server.Directives._
@@ -15,7 +15,6 @@ import akka.http.scaladsl.server.directives.RouteDirectives.complete
 import scala.concurrent.Future
 import akka.pattern.ask
 import akka.util.Timeout
-import com.spideo.hiring.ion.actors.Auction.Answer
 
 import scala.util.{Failure, Success}
 
@@ -54,12 +53,12 @@ trait AuctionHouseRoutes extends JsonSupport {
               },
               put {
                 entity(as[AuctionRuleParamsUpdate]) { auctionRuleParamsUpdate =>
-                    val (auctionUpdated: Future[Answer]) =
-                      (auctionHouseActor ? UpdateAuction(auctioneerId, auctionId, auctionRuleParamsUpdate)).mapTo[Answer]
+                    val (auctionUpdated: Future[UpdateAuctionAnswer]) =
+                      (auctionHouseActor ? UpdateAuction(auctioneerId, auctionId, auctionRuleParamsUpdate)).mapTo[UpdateAuctionAnswer]
                     onComplete(auctionUpdated) {
-                      case Success(answer) => answer.error match {
-                        case None => complete(StatusCodes.OK)
-                        case Some(error) => complete((StatusCodes.BadRequest, error.msg))
+                      case Success(answer) => answer.msg match {
+                        case Left(r) => complete((answer.status, r))
+                        case Right(r) => complete((answer.status, r))
                       }
                       case Failure(ex) => complete((StatusCodes.InternalServerError, s"Got exception ${ex.getMessage()}"))
                     }

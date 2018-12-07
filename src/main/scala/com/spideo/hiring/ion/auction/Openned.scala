@@ -1,6 +1,6 @@
 package com.spideo.hiring.ion.auction
 
-import com.spideo.hiring.ion.auction.AuctionTypes.{Bid, Bidder, Constant, Error}
+import com.spideo.hiring.ion.auction.AuctionTypes.{Bid, Bidder, Error, Increment}
 
 import scala.collection.mutable.ListBuffer
 
@@ -44,7 +44,7 @@ class Openned(notStarted: Planned)
 
   private def validateIncrement(bid: Bid): Boolean = {
     rule.increment match {
-      case Constant(value) => value <= bid.price - currentPrice
+      case Increment(value) => value <= bid.price - currentPrice
     }
   }
 
