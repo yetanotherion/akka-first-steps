@@ -2,9 +2,10 @@ package com.spideo.hiring.ion.actors
 
 import akka.actor.{Actor, ActorLogging, Props}
 import akka.http.scaladsl.model.StatusCodes
-import com.spideo.hiring.ion.actors.Auction.{GetMessage, PlannedMessage}
+import com.spideo.hiring.ion.actors.Auction.{GetMessage, OpennedMessage, PlannedMessage}
 import com.spideo.hiring.ion.auction.AuctionTypes._
 import com.spideo.hiring.ion.auction.Auctioneer
+import com.spideo.hiring.ion.auction.Openned.{NewBid, NewBidder}
 import com.spideo.hiring.ion.routes.{AuctionRuleParams, AuctionRuleParamsUpdate}
 
 import scala.util.{Failure, Success, Try}
@@ -26,6 +27,8 @@ object AuctionHouseActor {
   final case class CreateAuction(auctioneerId: AuctioneerId, auctionId: AuctionId, auctionRule: AuctionRuleParams)
   final case class UpdateAuction(auctioneerId: AuctioneerId, auctionId: AuctionId, auctionRule: AuctionRuleParamsUpdate)
   final case class GetAuction(auctioneerId: AuctioneerId, auctionId: AuctionId)
+  final case class AddBidder(auctioneerId: AuctioneerId, auctionId: AuctionId, bidder: Bidder)
+  final case class AddBid(auctioneerId: AuctioneerId, auctionId: AuctionId, bid: Bid)
 
   //val errorInCreateAuction = CreateAuctionAnswer(None, msg="Got an error")
 }
@@ -55,6 +58,7 @@ class AuctionHouseActor extends Actor with ActorLogging {
           sender() ! AuctionRuleAnswer(StatusCodes.BadRequest, Right(e.getMessage))
       }
     }
+
     case UpdateAuction(auctioneerId, auctionId, auctionRuleParamsUpdate) => {
       val auctioneer = getAuctioneer(auctioneerId)
       auctioneer.get(auctionId) match {
@@ -80,6 +84,29 @@ class AuctionHouseActor extends Actor with ActorLogging {
       }
     }
 
+    case AddBidder(auctioneerId, auctionId, bidder) => {
+      val auctioneer = getAuctioneer(auctioneerId)
+      auctioneer.get(auctionId) match {
+        case Some(actor) => {
+          actor forward OpennedMessage(NewBidder(bidder))
+        }
+        case None => {
+          sender () ! AuctionRuleAnswer(StatusCodes.NotFound, Right(s"Auction $auctionId was not created by $auctioneerId"))
+        }
+      }
+    }
+
+    case AddBid(auctioneerId, auctionId, bid) => {
+      val auctioneer = getAuctioneer(auctioneerId)
+      auctioneer.get(auctionId) match {
+        case Some(actor) => {
+          actor forward OpennedMessage(NewBid(bid))
+        }
+        case None => {
+          sender () ! AuctionRuleAnswer(StatusCodes.NotFound, Right(s"Auction $auctionId was not created by $auctioneerId"))
+        }
+      }
+    }
   }
 
   def getAuctioneer(auctioneerId: AuctioneerId): Auctioneer = {

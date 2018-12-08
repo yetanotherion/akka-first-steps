@@ -6,6 +6,7 @@ import scala.collection.mutable.ListBuffer
 
 object Openned {
   sealed abstract class Message
+  final case class NewBidder(newBidder: Bidder) extends Message
   final case class NewBid(newBid: Bid) extends Message
 }
 
@@ -21,6 +22,7 @@ class Openned(notStarted: Planned)
   def receive(message: Message): Option[Error] = {
     message match {
       case NewBid(bid) => receiveBid(bid)
+      case NewBidder(bidder) => receiveBidder(bidder)
     }
   }
 
@@ -29,6 +31,11 @@ class Openned(notStarted: Planned)
       case Some(error) => Some(error)
       case None => addBid(bid)
     }
+  }
+
+  private def receiveBidder(bidder: AuctionTypes.Bidder): Option[Error] = {
+    bidders.add(bidder)
+    None
   }
 
   private def validateBid(bid: Bid): Option[Error] = {
