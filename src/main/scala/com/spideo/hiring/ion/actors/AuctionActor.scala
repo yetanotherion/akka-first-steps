@@ -76,15 +76,15 @@ class Auction(rule: AuctionRule) extends Actor with ActorLogging {
     val currentTime = getCurrentTime()
     state match {
       case PlannedState(notStarted) => {
-        if (isEnded(currentTime, notStarted.rule)) {
+        if (didEnd(currentTime, notStarted.rule)) {
           state = ClosedState(new Closed(new Openned(notStarted)))
         }
-        else if (isStarted(currentTime, notStarted.rule)) {
+        else if (didStart(currentTime, notStarted.rule)) {
           state = OpennedState(new Openned(notStarted))
         }
       }
       case OpennedState(onGoing) => {
-        if (isEnded(currentTime, onGoing.rule)) {
+        if (didEnd(currentTime, onGoing.rule)) {
           state = ClosedState(new Closed(onGoing))
         }
       }
@@ -92,11 +92,11 @@ class Auction(rule: AuctionRule) extends Actor with ActorLogging {
     }
   }
 
-  private def isEnded(currentTime: Long, rule: AuctionRule): Boolean = {
+  private def didEnd(currentTime: Long, rule: AuctionRule): Boolean = {
     currentTime >= rule.endDate.epochInSec
   }
 
-  private def isStarted(currentTime: Long, rule: AuctionRule): Boolean = {
+  private def didStart(currentTime: Long, rule: AuctionRule): Boolean = {
     currentTime >= rule.startDate.epochInSec
   }
 
