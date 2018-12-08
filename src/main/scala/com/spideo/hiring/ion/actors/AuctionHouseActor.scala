@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorLogging, Props}
 import akka.http.scaladsl.model.StatusCodes
 import com.spideo.hiring.ion.actors.Auction.{GetMessage, OpennedMessage, PlannedMessage}
 import com.spideo.hiring.ion.auction.AuctionTypes._
-import com.spideo.hiring.ion.auction.Auctioneer
+import com.spideo.hiring.ion.auction.{Auctioneer, Planned}
 import com.spideo.hiring.ion.auction.Openned.{NewBid, NewBidder}
 import com.spideo.hiring.ion.routes.{AuctionRuleParams, AuctionRuleParamsUpdate}
 
@@ -54,7 +54,7 @@ class AuctionHouseActor extends Actor with ActorLogging {
         case Success(auctionRule) =>
           val ok = createAuction(auctioneerId, auctionId, auctionRule)
           if (ok) {
-            sender() ! AuctionAnswer(StatusCodes.Created, Left(auctionRule))
+            sender() ! AuctionAnswer(StatusCodes.Created, Left(Planned.toPlannedInfo(auctionRule)))
           } else {
             sender() ! AuctionAnswer(StatusCodes.Conflict, Right(
               s"Auction $auctionId was already created by $auctioneerId"))

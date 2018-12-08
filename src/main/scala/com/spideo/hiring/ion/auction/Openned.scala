@@ -1,17 +1,32 @@
 package com.spideo.hiring.ion.auction
 
-import com.spideo.hiring.ion.auction.AuctionTypes.{Bid, Bidder, Error, Increment}
+import akka.http.scaladsl.model.StatusCodes
+import com.spideo.hiring.ion.auction.AuctionTypes._
 
 import scala.collection.mutable.ListBuffer
 
 object Openned {
+
   sealed abstract class Message
+
   final case class NewBidder(newBidder: Bidder) extends Message
+
   final case class NewBid(newBid: Bid) extends Message
+
+  def toOpennedInfo(openned: Openned): AuctionInfo = {
+    AuctionInfo(rule = openned.rule,
+      state = "open",
+      bidders = openned.bidders.toList,
+      bids = openned.bids.toList,
+      winner = None,
+      currentPrice = Some(openned.currentPrice),
+    )
+  }
 }
 
 class Openned(notStarted: Planned)
 {
+
   import Openned._
 
   var bids = ListBuffer[Bid]()
@@ -19,23 +34,27 @@ class Openned(notStarted: Planned)
   val rule = notStarted.rule
   val bidders = scala.collection.mutable.Set[Bidder]()
 
-  def receive(message: Message): Option[Error] = {
+  def receive(message: Message): AuctionAnswer = {
     message match {
       case NewBid(bid) => receiveBid(bid)
       case NewBidder(bidder) => receiveBidder(bidder)
     }
   }
 
-  private def receiveBid(bid: Bid): Option[Error] = {
+  private def receiveBid(bid: Bid): AuctionAnswer = {
     validateBid(bid) match {
-      case Some(error) => Some(error)
-      case None => addBid(bid)
+      case Some(error) => AuctionAnswer(StatusCodes.BadRequest, Right(error.msg))
+      case None => {
+        addBid(bid)
+        AuctionAnswer(StatusCodes.OK, Left(toOpennedInfo(this)))
+      }
     }
   }
 
-  private def receiveBidder(bidder: AuctionTypes.Bidder): Option[Error] = {
+  private def receiveBidder(bidder: AuctionTypes.Bidder): AuctionAnswer =
+  {
     bidders.add(bidder)
-    None
+    AuctionAnswer(StatusCodes.OK, Left(toOpennedInfo(this)))
   }
 
   private def validateBid(bid: Bid): Option[Error] = {

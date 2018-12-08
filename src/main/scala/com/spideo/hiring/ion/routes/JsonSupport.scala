@@ -2,7 +2,7 @@ package com.spideo.hiring.ion.routes
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import com.spideo.hiring.ion.auction.AuctionTypes
-import com.spideo.hiring.ion.auction.AuctionTypes.{AuctionDate, AuctionRule, BidParam, Price}
+import com.spideo.hiring.ion.auction.AuctionTypes._
 import spray.json.{DefaultJsonProtocol, DeserializationException, JsArray, JsNumber, JsString, JsValue, RootJsonFormat}
 
 trait JsonSupport extends SprayJsonSupport {
@@ -26,4 +26,6 @@ trait JsonSupport extends SprayJsonSupport {
   implicit val auctionRuleJsonFormat = jsonFormat5(AuctionRule)
 
   implicit val bidParamJsonFormat = jsonFormat1(BidParam)
+  implicit val bidJsonFormat = jsonFormat2(Bid)
+  implicit val auctionJsonFormat = jsonFormat6(AuctionInfo)
 }

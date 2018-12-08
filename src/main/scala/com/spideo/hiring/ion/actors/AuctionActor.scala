@@ -2,7 +2,7 @@ package com.spideo.hiring.ion.actors
 
 import akka.actor.{Actor, ActorLogging, Props}
 import akka.http.scaladsl.model.StatusCodes
-import com.spideo.hiring.ion.auction.AuctionTypes.{AuctionDate, AuctionRule, AuctionAnswer, Error}
+import com.spideo.hiring.ion.auction.AuctionTypes.{AuctionAnswer, AuctionDate, AuctionInfo, AuctionRule, Bid, Bidder, Error, Price}
 import com.spideo.hiring.ion.auction.{Closed, Openned, Planned}
 sealed trait State
 
@@ -46,16 +46,14 @@ class Auction(rule: AuctionRule) extends Actor with ActorLogging {
     case PlannedMessage(plannedMessage) => {
       state match {
         case PlannedState(planned) =>
-          val res = planned.receive(plannedMessage)
-          sender() ! res
+          sender() ! planned.receive(plannedMessage)
         case OpennedState(_) | ClosedState(_) => sender() ! messageNotSupportedAnswer
       }
     }
     case OpennedMessage(opennedMessage) => {
       state match {
         case OpennedState(openned) => {
-          val res = openned.receive(opennedMessage)
-          sender() ! Answer(res)
+          sender() ! openned.receive(opennedMessage)
         }
         case PlannedState(_) | ClosedState(_) => sender() ! messageNotSupportedAnswer
       }
@@ -63,7 +61,7 @@ class Auction(rule: AuctionRule) extends Actor with ActorLogging {
     case GetMessage => {
       state match {
         case PlannedState(planned) => {
-          sender() ! AuctionAnswer(StatusCodes.OK, Left(planned.rule))
+          sender() ! AuctionAnswer(StatusCodes.OK, Left(Planned.toPlannedInfo(planned.rule)))
         }
         case OpennedState(_) | ClosedState(_) => sender() ! messageNotSupportedAnswer
       }

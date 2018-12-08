@@ -26,7 +26,15 @@ object AuctionTypes {
     var startDate: AuctionDate, var endDate: AuctionDate,
     var item: Item, var initialPrice: Price, var increment: Increment)
 
-  final case class AuctionAnswer(status: StatusCode, msg: Either[AuctionRule, String])
+  final case class AuctionInfo(
+    rule: AuctionRule,
+    state: String,
+    bidders: List[Bidder],
+    bids: List[Bid],
+    winner: Option[Bid],
+    currentPrice: Option[Price]
+  )
+  final case class AuctionAnswer(status: StatusCode, msg: Either[AuctionInfo, String])
 
   private val dateFormat = DateTimeFormatter.ISO_OFFSET_DATE_TIME
   private val zoneId  = ZoneId.systemDefault()
