@@ -69,7 +69,15 @@ class Planned(val rule: AuctionRule) {
         }
       }
     }
-    List(updateStart, updateEnd).foldLeft(List[RawUpdate]()) {
+    val updateNewPrice: List[RawUpdate] => List[RawUpdate] = { l =>
+      message.initialPrice match {
+        case None => l
+        case Some(initialPrice) => {
+          NewRawInitialPrice(initialPrice) :: l
+        }
+      }
+    }
+    List(updateStart, updateEnd, updateNewPrice).foldLeft(List[RawUpdate]()) {
       (l, f) => f(l)
     }
   }
