@@ -1,10 +1,11 @@
 package com.spideo.hiring.ion.actors
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props, Timers}
 import akka.http.scaladsl.model.StatusCodes
 import com.spideo.hiring.ion.actors.Auction.{GetMessage, OpennedMessage, PlannedMessage}
+import com.spideo.hiring.ion.actors.BidsOfBidderActor.{BidsOfBidderRequest, DeleteFromCache}
 import com.spideo.hiring.ion.auction.AuctionTypes._
-import com.spideo.hiring.ion.auction.{Auctioneer, Planned}
+import com.spideo.hiring.ion.auction.{Auctioneer, BiddersToAuctions, Planned}
 import com.spideo.hiring.ion.auction.Openned.{NewBid, NewBidder}
 import com.spideo.hiring.ion.routes.{AuctionRuleParams, AuctionRuleParamsUpdate}
 
@@ -32,9 +33,11 @@ object AuctionHouseActor {
 
   final case class AddBid(auctioneerId: AuctioneerId, auctionId: AuctionId, bid: Bid)
 
+  final case class RetryGetAuctionsRelatedToBidder(bidder: Bidder)
+
 }
 
-class AuctionHouseActor extends Actor with ActorLogging {
+class AuctionHouseActor extends Actor with ActorLogging with Timers {
 
   import AuctionHouseActor._
 
@@ -43,8 +46,8 @@ class AuctionHouseActor extends Actor with ActorLogging {
   override def postStop(): Unit = log.info("AuctionHouse stopped")
 
   val auctioneers = scala.collection.mutable.HashMap.empty[AuctioneerId, Auctioneer]
-  // cache to know which bidders may be associated to which actor
-  val bidders = scala.collection.mutable.HashMap.empty[Bidder, scala.collection.mutable.Set[ActorRef]]
+
+  val biddersToAuctionCache = new BiddersToAuctions()
 
   override def receive = {
 
@@ -64,22 +67,45 @@ class AuctionHouseActor extends Actor with ActorLogging {
     }
     case UpdateAuction(auctioneerId, auctionId, auctionRuleParamsUpdate) =>
       forwardToActor(auctioneerId, auctionId, _ => PlannedMessage(auctionRuleParamsUpdate))
+
     case AddBidder(auctioneerId, auctionId, bidder) =>
       def onForward(actor: ActorRef) = {
         // Add the bidder to the cache, even if it may get refused
         // (for example if the actor is not in the OpennedState)
-        bidders.getOrElseUpdate(bidder, scala.collection.mutable.Set[ActorRef]()).add(actor)
+        biddersToAuctionCache.addAuction(bidder, auctioneerId, auctionId, actor)
         OpennedMessage(NewBidder(bidder))
       }
+
       forwardToActor(auctioneerId, auctionId, onForward)
+
     case AddBid(auctioneerId, auctionId, bid) =>
       forwardToActor(auctioneerId, auctionId, _ => OpennedMessage(NewBid(bid)))
+
     case GetAuction(auctioneerId, auctionId) =>
       forwardToActor(auctioneerId, auctionId, _ => GetMessage)
 
+    /* 1 -> N  */
+    case GetBidsOfBidderRequest(bidder) => {
+      val actors = biddersToAuctionCache.getActors(bidder)
+      actors.isEmpty match {
+        case true => sender() != Answer(StatusCodes.OK, Left(BidsOfBidder(bids = List())))
+        case false => {
+          /* this actor will stop by itself when done or upon timeout */
+          val newActor = context.actorOf(BidsOfBidderActor.props(bidder), "BidsOfBidder")
+          newActor ! BidsOfBidderRequest(bidder = bidder, auctions = actors, respondTo = sender)
+        }
+      }
+    }
+
+    case DeleteFromCache(notFound) => {
+      biddersToAuctionCache.deleteAuctionFromBidder(bidder = notFound.bidder,
+        auctionId = notFound.auctionId, auctioneerId = notFound.auctioneerId)
+    }
   }
 
-  private def forwardToActor(auctioneerId: AuctioneerId, auctionId: AuctionId, message: ActorRef => Auction.Message): Unit = {
+  private def forwardToActor(auctioneerId: AuctioneerId, auctionId: AuctionId, message: ActorRef => Auction.Message)
+  : Unit =
+  {
     val auctioneer = getAuctioneer(auctioneerId)
     auctioneer.get(auctionId) match {
       case Some(actor) => {
@@ -101,7 +127,7 @@ class AuctionHouseActor extends Actor with ActorLogging {
     auctioneer.get(auctionId) match {
       case Some(_) => false
       case None =>
-        val auctionProps = Auction.props(auctioneerId=auctioneerId, auctionId=auctionId, rule=auctionRule)
+        val auctionProps = Auction.props(auctioneerId = auctioneerId, auctionId = auctionId, rule = auctionRule)
         val res = context.actorOf(auctionProps)
         getAuctioneer(auctioneerId).add(auctionId, res)
         true

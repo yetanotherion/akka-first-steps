@@ -8,7 +8,7 @@ object Closed {
       state = "closed",
       bidders = closed.bidders,
       bids = closed.bids,
-      winner = Some(closed.winner),
+      winner = closed.winner,
       currentPrice = None,
     )
   }
@@ -19,8 +19,10 @@ class Closed(onGoingAuction: Openned) {
   val bidders= onGoingAuction.bidders.toList
   val currentPrice = onGoingAuction.currentPrice
   val bids = onGoingAuction.bids.toList
-  val winner = bids.head
-
+  val winner = bids match {
+    case List() => None
+    case hd :: tl => Some(hd)
+  }
 
 }
 

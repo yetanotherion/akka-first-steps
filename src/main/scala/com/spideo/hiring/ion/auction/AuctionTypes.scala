@@ -1,12 +1,9 @@
 package com.spideo.hiring.ion.auction
 
-import java.text.ParseException
-import java.time.{Instant, LocalDate, LocalDateTime, ZoneId, ZonedDateTime}
+import java.time.{Instant, LocalDateTime, ZoneId, ZonedDateTime}
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 
 import akka.http.scaladsl.model.StatusCode
-
-import scala.util.{Failure, Success, Try}
 
 object AuctionTypes {
   final case class AuctionDate(epochInSec: Long)
@@ -16,6 +13,9 @@ object AuctionTypes {
   type Bidder = Int
   type AuctionId = Int
   type AuctioneerId = Int
+
+  final case class AuctionKey(auctionId: AuctionId, auctioneerId: AuctioneerId)
+
   final case class Increment(value: Price)
 
   final case class BidParam(bid: Price)
@@ -33,7 +33,27 @@ object AuctionTypes {
     winner: Option[Bid],
     currentPrice: Option[Price]
   )
+
   final case class AuctionAnswer(status: StatusCode, msg: Either[AuctionInfo, String])
+
+  final case class Answer[T](status: StatusCode, msg: Either[T, String])
+
+  /* API <-> auctionHouse */
+  final case class BidsOfBidderInOneAuction(
+    bidder: Bidder,
+    state: String,
+    bidders: List[Bidder],
+    auctionId: AuctionId, auctioneerId: AuctioneerId,
+    bestBid: Option[Bid],
+    executedBids: List[Bid])
+  final case class GetBidsOfBidderRequest(bidder: Bidder)
+  final case class BidsOfBidder(bids: List[BidsOfBidderInOneAuction])
+
+
+  /* auctionHouse <-> auction */
+  final case class NotFound(bidder: Bidder, auctioneerId: AuctioneerId, auctionId: AuctionId)
+  type BidsOfBidderAnswer = Either[BidsOfBidderInOneAuction, NotFound]
+  final case class GetBidsOfBidderRequestAnswer(answer: BidsOfBidderAnswer)
 
   private val dateFormat = DateTimeFormatter.ISO_OFFSET_DATE_TIME
   private val zoneId  = ZoneId.systemDefault()

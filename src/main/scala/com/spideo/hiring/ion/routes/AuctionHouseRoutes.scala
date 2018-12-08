@@ -3,7 +3,7 @@ package com.spideo.hiring.ion.routes
 import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
 import com.spideo.hiring.ion.actors.AuctionHouseActor.{AddBid, AddBidder, CreateAuction, GetAuction, UpdateAuction}
-import com.spideo.hiring.ion.auction.AuctionTypes.{AuctionAnswer, Bid, BidParam, Item, Price}
+import com.spideo.hiring.ion.auction.AuctionTypes._
 
 import scala.concurrent.duration._
 import akka.http.scaladsl.server.Directives._
@@ -37,6 +37,16 @@ trait AuctionHouseRoutes extends JsonSupport {
 
   implicit lazy val timeout = Timeout(5.seconds)
 
+  def completeAnswer(answer: Future[Answer[BidsOfBidder]]) = {
+    onComplete(answer) {
+      case Success(answer) => answer.msg match {
+        case Left(r) => complete((answer.status, r))
+        case Right(r) => complete((answer.status, r))
+      }
+      case Failure(ex) => complete((StatusCodes.InternalServerError, s"Got exception ${ex.getMessage()}"))
+    }
+  }
+
   def completeAuctionAnswer(answer: Future[AuctionAnswer]) = {
     onComplete(answer) {
       case Success(answer) => answer.msg match {
@@ -47,7 +57,7 @@ trait AuctionHouseRoutes extends JsonSupport {
     }
   }
 
-  lazy val auctionHouseRoutes: Route =
+  lazy val auctioneerRoutes: Route =
     pathPrefix("auctioneer" / IntNumber / "auction" / IntNumber) {
       (auctioneerId, auctionId) =>
         concat(
@@ -99,5 +109,16 @@ trait AuctionHouseRoutes extends JsonSupport {
           }
         )
     }
+
+  lazy val bidderRoutes =
+    path("bidder" / IntNumber) { bidderId =>
+        get {
+          val (bidderBids: Future[Answer[BidsOfBidder]]) =
+            (auctionHouseActor ? GetBidsOfBidderRequest(bidderId)).mapTo[Answer[BidsOfBidder]]
+          completeAnswer(bidderBids)
+        }
+      }
+
+  lazy val auctionHouseRoutes = auctioneerRoutes ~ bidderRoutes
 }
 
