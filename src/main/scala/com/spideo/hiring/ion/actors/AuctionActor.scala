@@ -63,7 +63,12 @@ class Auction(rule: AuctionRule) extends Actor with ActorLogging {
         case PlannedState(planned) => {
           sender() ! AuctionAnswer(StatusCodes.OK, Left(Planned.toPlannedInfo(planned.rule)))
         }
-        case OpennedState(_) | ClosedState(_) => sender() ! messageNotSupportedAnswer
+        case OpennedState(openned) => {
+          sender() ! AuctionAnswer(StatusCodes.OK, Left(Openned.toOpennedInfo(openned)))
+        }
+        case ClosedState(closed) => {
+          sender() ! AuctionAnswer(StatusCodes.OK, Left(Closed.toClosedInfo(closed)))
+        }
       }
     }
   }

@@ -29,7 +29,7 @@ class Openned(notStarted: Planned)
 
   import Openned._
 
-  var bids = ListBuffer[Bid]()
+  var bids = List[Bid]()
   var currentPrice = notStarted.rule.initialPrice
   val rule = notStarted.rule
   val bidders = scala.collection.mutable.Set[Bidder]()
@@ -76,7 +76,7 @@ class Openned(notStarted: Planned)
 
   private def addBid(bid: Bid): Option[Error] = {
     currentPrice = bid.price
-    bids += bid
+    bids = bid :: bids
     None
   }
 }
