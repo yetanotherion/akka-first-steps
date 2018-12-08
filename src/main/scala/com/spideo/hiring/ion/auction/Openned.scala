@@ -3,8 +3,6 @@ package com.spideo.hiring.ion.auction
 import akka.http.scaladsl.model.StatusCodes
 import com.spideo.hiring.ion.auction.AuctionTypes._
 
-import scala.collection.mutable.ListBuffer
-
 object Openned {
 
   sealed abstract class Message
@@ -17,7 +15,7 @@ object Openned {
     AuctionInfo(rule = openned.rule,
       state = "open",
       bidders = openned.bidders.toList,
-      bids = openned.bids.toList,
+      bids = openned.bids,
       winner = None,
       currentPrice = Some(openned.currentPrice),
     )
@@ -43,7 +41,7 @@ class Openned(notStarted: Planned)
 
   private def receiveBid(bid: Bid): AuctionAnswer = {
     validateBid(bid) match {
-      case Some(error) => AuctionAnswer(StatusCodes.BadRequest, Right(error.msg))
+      case Some(error) => AuctionAnswer(StatusCodes.BadRequest, Right(error))
       case None => {
         addBid(bid)
         AuctionAnswer(StatusCodes.OK, Left(toOpennedInfo(this)))
@@ -57,13 +55,13 @@ class Openned(notStarted: Planned)
     AuctionAnswer(StatusCodes.OK, Left(toOpennedInfo(this)))
   }
 
-  private def validateBid(bid: Bid): Option[Error] = {
+  private def validateBid(bid: Bid): Option[String] = {
     val bidder = bid.bidder
     if (!bidders.contains(bidder)) {
-      return Some(Error(s"${bidder} did not join the auction yet"))
+      return Some(s"${bidder} did not join the auction yet")
     }
     if (!validateIncrement(bid)) {
-      return Some(Error(s"${bid.price} does not respect increment rules"))
+      return Some(s"${bid.price} does not respect increment rules")
     }
     None
   }
@@ -74,10 +72,9 @@ class Openned(notStarted: Planned)
     }
   }
 
-  private def addBid(bid: Bid): Option[Error] = {
+  private def addBid(bid: Bid): Unit = {
     currentPrice = bid.price
     bids = bid :: bids
-    None
   }
 }
 

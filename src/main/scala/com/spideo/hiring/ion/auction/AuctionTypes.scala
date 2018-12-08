@@ -17,7 +17,6 @@ object AuctionTypes {
   type AuctionId = Int
   type AuctioneerId = Int
   final case class Increment(value: Price)
-  case class Error(msg:String)
 
   final case class BidParam(bid: Price)
   final case class Bid(bidder: Bidder, price: Price)
