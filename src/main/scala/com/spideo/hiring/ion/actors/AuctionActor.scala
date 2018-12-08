@@ -2,7 +2,7 @@ package com.spideo.hiring.ion.actors
 
 import akka.actor.{Actor, ActorLogging, Props}
 import akka.http.scaladsl.model.StatusCodes
-import com.spideo.hiring.ion.auction.AuctionTypes.{AuctionAnswer, AuctionDate, AuctionInfo, AuctionRule, Bid, Bidder, Price}
+import com.spideo.hiring.ion.auction.AuctionTypes.{AuctionAnswer, AuctionRule}
 import com.spideo.hiring.ion.auction.{Closed, Openned, Planned}
 sealed trait State
 
