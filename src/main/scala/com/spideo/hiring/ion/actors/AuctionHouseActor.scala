@@ -22,8 +22,6 @@ object AuctionHouseActor {
     }
   }
 
-  final case object StartAuction
-
   final case class CreateAuction(auctioneerId: AuctioneerId, auctionId: AuctionId, auctionRule: AuctionRuleParams)
 
   final case class UpdateAuction(auctioneerId: AuctioneerId, auctionId: AuctionId, auctionRule: AuctionRuleParamsUpdate)
@@ -34,7 +32,6 @@ object AuctionHouseActor {
 
   final case class AddBid(auctioneerId: AuctioneerId, auctionId: AuctionId, bid: Bid)
 
-  //val errorInCreateAuction = CreateAuctionAnswer(None, msg="Got an error")
 }
 
 class AuctionHouseActor extends Actor with ActorLogging {
