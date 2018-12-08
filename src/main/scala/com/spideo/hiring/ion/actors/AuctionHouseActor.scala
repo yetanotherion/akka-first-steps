@@ -1,6 +1,6 @@
 package com.spideo.hiring.ion.actors
 
-import akka.actor.{Actor, ActorLogging, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.http.scaladsl.model.StatusCodes
 import com.spideo.hiring.ion.actors.Auction.{GetMessage, OpennedMessage, PlannedMessage}
 import com.spideo.hiring.ion.auction.AuctionTypes._
@@ -46,6 +46,8 @@ class AuctionHouseActor extends Actor with ActorLogging {
   override def postStop(): Unit = log.info("AuctionHouse stopped")
 
   val auctioneers = scala.collection.mutable.HashMap.empty[AuctioneerId, Auctioneer]
+  // cache to know which bidders may be associated to which actor
+  val bidders = scala.collection.mutable.HashMap.empty[Bidder, scala.collection.mutable.Set[ActorRef]]
 
   override def receive = {
 
@@ -64,21 +66,27 @@ class AuctionHouseActor extends Actor with ActorLogging {
       }
     }
     case UpdateAuction(auctioneerId, auctionId, auctionRuleParamsUpdate) =>
-      forwardToActor(auctioneerId, auctionId, PlannedMessage(auctionRuleParamsUpdate))
+      forwardToActor(auctioneerId, auctionId, _ => PlannedMessage(auctionRuleParamsUpdate))
     case AddBidder(auctioneerId, auctionId, bidder) =>
-      forwardToActor(auctioneerId, auctionId, OpennedMessage(NewBidder(bidder)))
+      def onForward(actor: ActorRef) = {
+        // Add the bidder to the cache, even if it may get refused
+        // (for example if the actor is not in the OpennedState)
+        bidders.getOrElseUpdate(bidder, scala.collection.mutable.Set[ActorRef]()).add(actor)
+        OpennedMessage(NewBidder(bidder))
+      }
+      forwardToActor(auctioneerId, auctionId, onForward)
     case AddBid(auctioneerId, auctionId, bid) =>
-      forwardToActor(auctioneerId, auctionId, OpennedMessage(NewBid(bid)))
+      forwardToActor(auctioneerId, auctionId, _ => OpennedMessage(NewBid(bid)))
     case GetAuction(auctioneerId, auctionId) =>
-      forwardToActor(auctioneerId, auctionId, GetMessage)
+      forwardToActor(auctioneerId, auctionId, _ => GetMessage)
 
   }
 
-  private def forwardToActor(auctioneerId: AuctioneerId, auctionId: AuctionId, message: Auction.Message): Unit = {
+  private def forwardToActor(auctioneerId: AuctioneerId, auctionId: AuctionId, message: ActorRef => Auction.Message): Unit = {
     val auctioneer = getAuctioneer(auctioneerId)
     auctioneer.get(auctionId) match {
       case Some(actor) => {
-        actor forward message
+        actor forward message(actor)
       }
       case None => {
         sender() ! AuctionAnswer(StatusCodes.NotFound,
@@ -96,7 +104,7 @@ class AuctionHouseActor extends Actor with ActorLogging {
     auctioneer.get(auctionId) match {
       case Some(_) => false
       case None =>
-        val auctionProps = Auction.props(auctionRule)
+        val auctionProps = Auction.props(auctioneerId=auctioneerId, auctionId=auctionId, rule=auctionRule)
         val res = context.actorOf(auctionProps)
         getAuctioneer(auctioneerId).add(auctionId, res)
         true

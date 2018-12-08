@@ -2,7 +2,7 @@ package com.spideo.hiring.ion.actors
 
 import akka.actor.{Actor, ActorLogging, Props}
 import akka.http.scaladsl.model.StatusCodes
-import com.spideo.hiring.ion.auction.AuctionTypes.{AuctionAnswer, AuctionRule}
+import com.spideo.hiring.ion.auction.AuctionTypes.{AuctionAnswer, AuctionId, AuctionRule, AuctioneerId}
 import com.spideo.hiring.ion.auction.{Closed, Openned, Planned}
 sealed trait State
 
@@ -13,7 +13,7 @@ final case class OpennedState(onGoingAuction: Openned) extends State
 final case class ClosedState(endedAuction: Closed) extends State
 
 object Auction {
-  def props(rule: AuctionRule): Props = Props(new Auction(rule))
+  def props(auctioneerId: AuctioneerId, auctionId: AuctionId, rule: AuctionRule): Props = Props(new Auction(auctioneerId, auctionId, rule))
 
   sealed abstract class Message
   final case class PlannedMessage(plannedMessage: Planned.PlannedMessage) extends Message
@@ -26,7 +26,7 @@ object Auction {
   }
 }
 
-class Auction(rule: AuctionRule) extends Actor with ActorLogging {
+class Auction(auctioneerId: AuctioneerId, auctionId: AuctionId, rule: AuctionRule) extends Actor with ActorLogging {
   import Auction._
   private var state: State = PlannedState(new Planned(rule))
 
