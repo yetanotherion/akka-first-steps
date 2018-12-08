@@ -1,7 +1,8 @@
 package com.spideo.hiring.ion.actors
 
 import akka.actor.{Actor, ActorLogging, Props}
-import com.spideo.hiring.ion.auction.AuctionTypes.{AuctionRule, Error}
+import akka.http.scaladsl.model.StatusCodes
+import com.spideo.hiring.ion.auction.AuctionTypes.{AuctionDate, AuctionRule, AuctionRuleAnswer, Error}
 import com.spideo.hiring.ion.auction.{Closed, Openned, Planned}
 sealed trait State
 
@@ -59,23 +60,34 @@ class Auction(rule: AuctionRule) extends Actor with ActorLogging {
     }
   }
 
-  def messageNotSupportedAnswer = Answer(Some(Error("Message not supported in current state")))
+  def messageNotSupportedAnswer = AuctionRuleAnswer(StatusCodes.BadRequest, Right(s"Message not supported in current state $state"))
 
   private def updateState(): Unit = {
     val currentTime = getCurrentTime()
     state match {
       case PlannedState(notStarted) => {
-        if (notStarted.rule.startDate >= currentTime) {
+        if (isEnded(currentTime, notStarted.rule)) {
+          state = ClosedState(new Closed(new Openned(notStarted)))
+        }
+        else if (isStarted(currentTime, notStarted.rule)) {
           state = OpennedState(new Openned(notStarted))
         }
       }
       case OpennedState(onGoing) => {
-        if (onGoing.rule.endDate >= currentTime) {
+        if (isEnded(currentTime, onGoing.rule)) {
           state = ClosedState(new Closed(onGoing))
         }
       }
       case ClosedState(_) => ()
     }
+  }
+
+  private def isEnded(currentTime: Long, rule: AuctionRule): Boolean = {
+    currentTime >= rule.endDate.epochInSec
+  }
+
+  private def isStarted(currentTime: Long, rule: AuctionRule): Boolean = {
+    currentTime >= rule.startDate.epochInSec
   }
 
 }
