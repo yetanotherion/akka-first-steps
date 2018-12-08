@@ -18,6 +18,8 @@ object Auction {
   final case class PlannedMessage(plannedMessage: Planned.PlannedMessage)
   final case class OpennedMessage(opennedMessage: Openned.Message)
 
+  final object GetMessage
+
   final case class Answer(error: Option[Error])
   def getCurrentTime(): Long = {
     System.currentTimeMillis / 1000
@@ -56,6 +58,14 @@ class Auction(rule: AuctionRule) extends Actor with ActorLogging {
           sender() ! Answer(res)
         }
         case PlannedState(_) | ClosedState(_) => sender() ! messageNotSupportedAnswer
+      }
+    }
+    case GetMessage => {
+      state match {
+        case PlannedState(planned) => {
+          sender() ! AuctionRuleAnswer(StatusCodes.OK, Left(planned.rule))
+        }
+        case OpennedState(_) | ClosedState(_) => sender() ! messageNotSupportedAnswer
       }
     }
   }

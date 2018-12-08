@@ -2,7 +2,7 @@ package com.spideo.hiring.ion.routes
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
-import com.spideo.hiring.ion.actors.AuctionHouseActor.{CreateAuction, UpdateAuction}
+import com.spideo.hiring.ion.actors.AuctionHouseActor.{CreateAuction, GetAuction, UpdateAuction}
 import com.spideo.hiring.ion.auction.AuctionTypes.{AuctionRuleAnswer, Item, Price}
 
 import scala.concurrent.duration._
@@ -64,6 +64,11 @@ trait AuctionHouseRoutes extends JsonSupport {
                       (auctionHouseActor ? UpdateAuction(auctioneerId, auctionId, auctionRuleParamsUpdate)).mapTo[AuctionRuleAnswer]
                   completeAuctionRuleAnswer(auctionUpdated)
                 }
+              },
+              get {
+                  val (auctionUpdated: Future[AuctionRuleAnswer]) =
+                    (auctionHouseActor ? GetAuction(auctioneerId, auctionId)).mapTo[AuctionRuleAnswer]
+                  completeAuctionRuleAnswer(auctionUpdated)
               }
             )
           },
