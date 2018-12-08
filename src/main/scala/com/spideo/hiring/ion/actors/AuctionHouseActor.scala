@@ -25,9 +25,13 @@ object AuctionHouseActor {
   final case object StartAuction
 
   final case class CreateAuction(auctioneerId: AuctioneerId, auctionId: AuctionId, auctionRule: AuctionRuleParams)
+
   final case class UpdateAuction(auctioneerId: AuctioneerId, auctionId: AuctionId, auctionRule: AuctionRuleParamsUpdate)
+
   final case class GetAuction(auctioneerId: AuctioneerId, auctionId: AuctionId)
+
   final case class AddBidder(auctioneerId: AuctioneerId, auctionId: AuctionId, bidder: Bidder)
+
   final case class AddBid(auctioneerId: AuctioneerId, auctionId: AuctionId, bid: Bid)
 
   //val errorInCreateAuction = CreateAuctionAnswer(None, msg="Got an error")
@@ -44,6 +48,7 @@ class AuctionHouseActor extends Actor with ActorLogging {
   val auctioneers = scala.collection.mutable.HashMap.empty[AuctioneerId, Auctioneer]
 
   override def receive = {
+
     case CreateAuction(auctioneerId, auctionId, auctionRuleParams) => {
       toAuctionRule(auctionRuleParams) match {
         case Success(auctionRule) =>
@@ -58,53 +63,26 @@ class AuctionHouseActor extends Actor with ActorLogging {
           sender() ! AuctionRuleAnswer(StatusCodes.BadRequest, Right(e.getMessage))
       }
     }
+    case UpdateAuction(auctioneerId, auctionId, auctionRuleParamsUpdate) =>
+      forwardToActor(auctioneerId, auctionId, PlannedMessage(auctionRuleParamsUpdate))
+    case AddBidder(auctioneerId, auctionId, bidder) =>
+      forwardToActor(auctioneerId, auctionId, OpennedMessage(NewBidder(bidder)))
+    case AddBid(auctioneerId, auctionId, bid) =>
+      forwardToActor(auctioneerId, auctionId, OpennedMessage(NewBid(bid)))
+    case GetAuction(auctioneerId, auctionId) =>
+      forwardToActor(auctioneerId, auctionId, GetMessage)
 
-    case UpdateAuction(auctioneerId, auctionId, auctionRuleParamsUpdate) => {
-      val auctioneer = getAuctioneer(auctioneerId)
-      auctioneer.get(auctionId) match {
-        case Some(actor) => {
-          log.info(s"Forwarding $auctionRuleParamsUpdate")
-          actor forward PlannedMessage(auctionRuleParamsUpdate)
-        }
-        case None => {
-          sender () ! AuctionRuleAnswer(StatusCodes.NotFound, Right(s"Auction $auctionId was not created by $auctioneerId"))
-        }
+  }
+
+  private def forwardToActor(auctioneerId: AuctioneerId, auctionId: AuctionId, message: Auction.Message): Unit = {
+    val auctioneer = getAuctioneer(auctioneerId)
+    auctioneer.get(auctionId) match {
+      case Some(actor) => {
+        actor forward message
       }
-    }
-
-    case GetAuction(auctioneerId, auctionId) => {
-      val auctioneer = getAuctioneer(auctioneerId)
-      auctioneer.get(auctionId) match {
-        case Some(actor) => {
-          actor forward GetMessage
-        }
-        case None => {
-          sender () ! AuctionRuleAnswer(StatusCodes.NotFound, Right(s"Auction $auctionId was not created by $auctioneerId"))
-        }
-      }
-    }
-
-    case AddBidder(auctioneerId, auctionId, bidder) => {
-      val auctioneer = getAuctioneer(auctioneerId)
-      auctioneer.get(auctionId) match {
-        case Some(actor) => {
-          actor forward OpennedMessage(NewBidder(bidder))
-        }
-        case None => {
-          sender () ! AuctionRuleAnswer(StatusCodes.NotFound, Right(s"Auction $auctionId was not created by $auctioneerId"))
-        }
-      }
-    }
-
-    case AddBid(auctioneerId, auctionId, bid) => {
-      val auctioneer = getAuctioneer(auctioneerId)
-      auctioneer.get(auctionId) match {
-        case Some(actor) => {
-          actor forward OpennedMessage(NewBid(bid))
-        }
-        case None => {
-          sender () ! AuctionRuleAnswer(StatusCodes.NotFound, Right(s"Auction $auctionId was not created by $auctioneerId"))
-        }
+      case None => {
+        sender() ! AuctionRuleAnswer(StatusCodes.NotFound,
+          Right(s"Auction $auctionId was not created by $auctioneerId"))
       }
     }
   }

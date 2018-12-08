@@ -15,10 +15,10 @@ final case class ClosedState(endedAuction: Closed) extends State
 object Auction {
   def props(rule: AuctionRule): Props = Props(new Auction(rule))
 
-  final case class PlannedMessage(plannedMessage: Planned.PlannedMessage)
-  final case class OpennedMessage(opennedMessage: Openned.Message)
-
-  final object GetMessage
+  sealed abstract class Message
+  final case class PlannedMessage(plannedMessage: Planned.PlannedMessage) extends Message
+  final case class OpennedMessage(opennedMessage: Openned.Message) extends Message
+  final object GetMessage extends Message
 
   final case class Answer(error: Option[Error])
   def getCurrentTime(): Long = {
