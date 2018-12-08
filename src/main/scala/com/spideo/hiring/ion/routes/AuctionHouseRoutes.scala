@@ -3,7 +3,7 @@ package com.spideo.hiring.ion.routes
 import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
 import com.spideo.hiring.ion.actors.AuctionHouseActor.{AddBid, AddBidder, CreateAuction, GetAuction, UpdateAuction}
-import com.spideo.hiring.ion.auction.AuctionTypes.{AuctionRuleAnswer, Bid, Item, Price}
+import com.spideo.hiring.ion.auction.AuctionTypes.{AuctionAnswer, Bid, BidParam, Item, Price}
 
 import scala.concurrent.duration._
 import akka.http.scaladsl.server.Directives._
@@ -37,7 +37,7 @@ trait AuctionHouseRoutes extends JsonSupport {
 
   implicit lazy val timeout = Timeout(5.seconds)
 
-  def completeAuctionRuleAnswer(answer: Future[AuctionRuleAnswer]) = {
+  def completeAuctionAnswer(answer: Future[AuctionAnswer]) = {
     onComplete(answer) {
       case Success(answer) => answer.msg match {
         case Left(r) => complete((answer.status, r))
@@ -55,24 +55,24 @@ trait AuctionHouseRoutes extends JsonSupport {
             concat(
               post {
                 entity(as[AuctionRuleParams]) { auctionRuleParams =>
-                  val (auctionCreated: Future[AuctionRuleAnswer]) =
+                  val (auctionCreated: Future[AuctionAnswer]) =
                     (auctionHouseActor ? CreateAuction(auctioneerId, auctionId, auctionRuleParams))
-                      .mapTo[AuctionRuleAnswer]
-                  completeAuctionRuleAnswer(auctionCreated)
+                      .mapTo[AuctionAnswer]
+                  completeAuctionAnswer(auctionCreated)
                 }
               },
               put {
                 entity(as[AuctionRuleParamsUpdate]) { auctionRuleParamsUpdate =>
-                  val (auctionUpdated: Future[AuctionRuleAnswer]) =
+                  val (auctionUpdated: Future[AuctionAnswer]) =
                     (auctionHouseActor ? UpdateAuction(auctioneerId, auctionId, auctionRuleParamsUpdate))
-                      .mapTo[AuctionRuleAnswer]
-                  completeAuctionRuleAnswer(auctionUpdated)
+                      .mapTo[AuctionAnswer]
+                  completeAuctionAnswer(auctionUpdated)
                 }
               },
               get {
-                val (auctionUpdated: Future[AuctionRuleAnswer]) =
-                  (auctionHouseActor ? GetAuction(auctioneerId, auctionId)).mapTo[AuctionRuleAnswer]
-                completeAuctionRuleAnswer(auctionUpdated)
+                val (auctionUpdated: Future[AuctionAnswer]) =
+                  (auctionHouseActor ? GetAuction(auctioneerId, auctionId)).mapTo[AuctionAnswer]
+                completeAuctionAnswer(auctionUpdated)
               }
             )
           },
@@ -81,16 +81,16 @@ trait AuctionHouseRoutes extends JsonSupport {
               pathEnd {
                 concat(
                   put {
-                    val (auctionUpdated: Future[AuctionRuleAnswer]) =
-                      (auctionHouseActor ? AddBidder(auctioneerId, auctionId, bidderId)).mapTo[AuctionRuleAnswer]
-                    completeAuctionRuleAnswer(auctionUpdated)
+                    val (auctionUpdated: Future[AuctionAnswer]) =
+                      (auctionHouseActor ? AddBidder(auctioneerId, auctionId, bidderId)).mapTo[AuctionAnswer]
+                    completeAuctionAnswer(auctionUpdated)
                   },
                   post {
                     entity(as[BidParam]) { bidParam =>
                       val bid = Bid(bidder = bidderId, price = bidParam.bid)
-                      val (auctionUpdated: Future[AuctionRuleAnswer]) =
-                        (auctionHouseActor ? AddBid(auctioneerId, auctionId, bid)).mapTo[AuctionRuleAnswer]
-                      completeAuctionRuleAnswer(auctionUpdated)
+                      val (auctionUpdated: Future[AuctionAnswer]) =
+                        (auctionHouseActor ? AddBid(auctioneerId, auctionId, bid)).mapTo[AuctionAnswer]
+                      completeAuctionAnswer(auctionUpdated)
                     }
                   },
                 )

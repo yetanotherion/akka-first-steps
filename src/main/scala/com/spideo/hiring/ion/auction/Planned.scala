@@ -35,7 +35,7 @@ object Planned {
       case Right(errors) => Right(error :: errors)
     }
   }
-  type PlannedMessageAnswer = AuctionRuleAnswer
+  type PlannedMessageAnswer = AuctionAnswer
 }
 
 class Planned(val rule: AuctionRule) {
@@ -46,9 +46,9 @@ class Planned(val rule: AuctionRule) {
     validateRawUpdates(instructions) match {
       case Left(updates) => {
         implementUpdates(updates)
-        AuctionRuleAnswer(StatusCodes.OK, Left(rule))
+        AuctionAnswer(StatusCodes.OK, Left(rule))
       }
-      case Right(error) => AuctionRuleAnswer(StatusCodes.BadRequest, Right(s"invalid request: ${error.mkString(";")}"))
+      case Right(error) => AuctionAnswer(StatusCodes.BadRequest, Right(s"invalid request: ${error.mkString(";")}"))
     }
   }
 

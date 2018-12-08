@@ -19,13 +19,14 @@ object AuctionTypes {
   final case class Increment(value: Price)
   case class Error(msg:String)
 
+  final case class BidParam(bid: Price)
   final case class Bid(bidder: Bidder, price: Price)
 
   final case class AuctionRule(
     var startDate: AuctionDate, var endDate: AuctionDate,
     var item: Item, var initialPrice: Price, var increment: Increment)
 
-  final case class AuctionRuleAnswer(status: StatusCode, msg: Either[AuctionRule, String])
+  final case class AuctionAnswer(status: StatusCode, msg: Either[AuctionRule, String])
 
   private val dateFormat = DateTimeFormatter.ISO_OFFSET_DATE_TIME
   private val zoneId  = ZoneId.systemDefault()

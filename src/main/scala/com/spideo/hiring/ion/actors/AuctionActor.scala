@@ -2,7 +2,7 @@ package com.spideo.hiring.ion.actors
 
 import akka.actor.{Actor, ActorLogging, Props}
 import akka.http.scaladsl.model.StatusCodes
-import com.spideo.hiring.ion.auction.AuctionTypes.{AuctionDate, AuctionRule, AuctionRuleAnswer, Error}
+import com.spideo.hiring.ion.auction.AuctionTypes.{AuctionDate, AuctionRule, AuctionAnswer, Error}
 import com.spideo.hiring.ion.auction.{Closed, Openned, Planned}
 sealed trait State
 
@@ -63,14 +63,14 @@ class Auction(rule: AuctionRule) extends Actor with ActorLogging {
     case GetMessage => {
       state match {
         case PlannedState(planned) => {
-          sender() ! AuctionRuleAnswer(StatusCodes.OK, Left(planned.rule))
+          sender() ! AuctionAnswer(StatusCodes.OK, Left(planned.rule))
         }
         case OpennedState(_) | ClosedState(_) => sender() ! messageNotSupportedAnswer
       }
     }
   }
 
-  def messageNotSupportedAnswer = AuctionRuleAnswer(StatusCodes.BadRequest, Right(s"Message not supported in current state $state"))
+  def messageNotSupportedAnswer = AuctionAnswer(StatusCodes.BadRequest, Right(s"Message not supported in current state $state"))
 
   private def updateState(): Unit = {
     val currentTime = getCurrentTime()
