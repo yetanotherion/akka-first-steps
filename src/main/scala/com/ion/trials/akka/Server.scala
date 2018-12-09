@@ -20,10 +20,8 @@ object Server extends App with AuctionHouseRoutes {
   val auctionHouseActor: ActorRef =
     system.actorOf(AuctionHouseActor.props, "auctionHouseActor")
 
-  //#main-class
   lazy val routes: Route = auctionHouseRoutes
 
-  //#http-server
   Http().bindAndHandle(routes, "localhost", 5000)
 
   println(s"Server online at http://localhost:5000/")
