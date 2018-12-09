@@ -25,8 +25,6 @@ object Auction {
 
   final object GetMessage extends Message
 
-  final case class Answer(error: Option[Error])
-
   def getCurrentTime(): Long = {
     System.currentTimeMillis / 1000
   }
@@ -71,13 +69,13 @@ class Auction(auctioneerId: AuctioneerId, auctionId: AuctionId, rule: AuctionRul
     case GetMessage => {
       state match {
         case PlannedState(planned) => {
-          sender() ! AuctionAnswer(StatusCodes.OK, Left(Planned.toPlannedInfo(planned.rule)))
+          sender() ! Answer(StatusCodes.OK, Left(Planned.toPlannedInfo(planned.rule)))
         }
         case OpennedState(openned) => {
-          sender() ! AuctionAnswer(StatusCodes.OK, Left(Openned.toOpennedInfo(openned)))
+          sender() ! Answer(StatusCodes.OK, Left(Openned.toOpennedInfo(openned)))
         }
         case ClosedState(closed) => {
-          sender() ! AuctionAnswer(StatusCodes.OK, Left(Closed.toClosedInfo(closed)))
+          sender() ! Answer(StatusCodes.OK, Left(Closed.toClosedInfo(closed)))
         }
       }
     }
@@ -97,7 +95,7 @@ class Auction(auctioneerId: AuctioneerId, auctionId: AuctionId, rule: AuctionRul
     }
   }
 
-  def messageNotSupportedAnswer = AuctionAnswer(StatusCodes.BadRequest,
+  def messageNotSupportedAnswer = Answer(StatusCodes.BadRequest,
     Right(s"Message not supported in current state $state"))
 
   private def updateState(): Unit = {

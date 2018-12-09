@@ -34,8 +34,6 @@ object AuctionTypes {
     currentPrice: Option[Price]
   )
 
-  final case class AuctionAnswer(status: StatusCode, msg: Either[AuctionInfo, String])
-
   final case class Answer[T](status: StatusCode, msg: Either[T, String])
 
   /* API <-> auctionHouse */

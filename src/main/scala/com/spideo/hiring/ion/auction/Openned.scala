@@ -32,27 +32,27 @@ class Openned(notStarted: Planned)
   val rule = notStarted.rule
   val bidders = scala.collection.mutable.Set[Bidder]()
 
-  def receive(message: Message): AuctionAnswer = {
+  def receive(message: Message): Answer[AuctionInfo] = {
     message match {
       case NewBid(bid) => receiveBid(bid)
       case NewBidder(bidder) => receiveBidder(bidder)
     }
   }
 
-  private def receiveBid(bid: Bid): AuctionAnswer = {
+  private def receiveBid(bid: Bid): Answer[AuctionInfo] = {
     validateBid(bid) match {
-      case Some(error) => AuctionAnswer(StatusCodes.BadRequest, Right(error))
+      case Some(error) => Answer(StatusCodes.BadRequest, Right(error))
       case None => {
         addBid(bid)
-        AuctionAnswer(StatusCodes.OK, Left(toOpennedInfo(this)))
+        Answer(StatusCodes.OK, Left(toOpennedInfo(this)))
       }
     }
   }
 
-  private def receiveBidder(bidder: AuctionTypes.Bidder): AuctionAnswer =
+  private def receiveBidder(bidder: AuctionTypes.Bidder): Answer[AuctionInfo] =
   {
     bidders.add(bidder)
-    AuctionAnswer(StatusCodes.OK, Left(toOpennedInfo(this)))
+    Answer(StatusCodes.OK, Left(toOpennedInfo(this)))
   }
 
   private def validateBid(bid: Bid): Option[String] = {

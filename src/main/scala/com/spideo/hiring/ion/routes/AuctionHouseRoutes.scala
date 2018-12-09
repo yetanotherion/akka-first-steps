@@ -2,12 +2,12 @@ package com.spideo.hiring.ion.routes
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
+import akka.http.scaladsl.model.{StatusCode, StatusCodes}
 import com.spideo.hiring.ion.actors.AuctionHouseActor.{AddBid, AddBidder, CreateAuction, GetAuction, UpdateAuction}
 import com.spideo.hiring.ion.auction.AuctionTypes._
 
 import scala.concurrent.duration._
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.directives.MethodDirectives.post
 import akka.http.scaladsl.server.directives.RouteDirectives.complete
@@ -37,25 +37,18 @@ trait AuctionHouseRoutes extends JsonSupport {
 
   implicit lazy val timeout = Timeout(5.seconds)
 
-  def completeAnswer(answer: Future[Answer[BidsOfBidder]]) = {
+  def completeAnswer[T](onLeft: (StatusCode, T) => Route, answer: Future[Answer[T]]) = {
     onComplete(answer) {
       case Success(answer) => answer.msg match {
-        case Left(r) => complete((answer.status, r))
+        case Left(r) => onLeft(answer.status, r)
         case Right(r) => complete((answer.status, r))
       }
       case Failure(ex) => complete((StatusCodes.InternalServerError, s"Got exception ${ex.getMessage()}"))
     }
   }
 
-  def completeAuctionAnswer(answer: Future[AuctionAnswer]) = {
-    onComplete(answer) {
-      case Success(answer) => answer.msg match {
-        case Left(r) => complete((answer.status, r))
-        case Right(r) => complete((answer.status, r))
-      }
-      case Failure(ex) => complete((StatusCodes.InternalServerError, s"Got exception ${ex.getMessage()}"))
-    }
-  }
+  def completeBidsOfBidderAnswer(answer: Future[Answer[BidsOfBidder]]) = completeAnswer[BidsOfBidder]((s, b) => complete(s, b), answer)
+  def completeAuctionInfoAnswer(answer: Future[Answer[AuctionInfo]]) = completeAnswer[AuctionInfo]((s, b) => complete(s, b), answer)
 
   lazy val auctioneerRoutes: Route =
     pathPrefix("auctioneer" / IntNumber / "auction" / IntNumber) {
@@ -65,24 +58,24 @@ trait AuctionHouseRoutes extends JsonSupport {
             concat(
               post {
                 entity(as[AuctionRuleParams]) { auctionRuleParams =>
-                  val (auctionCreated: Future[AuctionAnswer]) =
+                  val (auctionCreated: Future[Answer[AuctionInfo]]) =
                     (auctionHouseActor ? CreateAuction(auctioneerId, auctionId, auctionRuleParams))
-                      .mapTo[AuctionAnswer]
-                  completeAuctionAnswer(auctionCreated)
+                      .mapTo[Answer[AuctionInfo]]
+                  completeAuctionInfoAnswer(auctionCreated)
                 }
               },
               put {
                 entity(as[AuctionRuleParamsUpdate]) { auctionRuleParamsUpdate =>
-                  val (auctionUpdated: Future[AuctionAnswer]) =
+                  val (auctionUpdated: Future[Answer[AuctionInfo]]) =
                     (auctionHouseActor ? UpdateAuction(auctioneerId, auctionId, auctionRuleParamsUpdate))
-                      .mapTo[AuctionAnswer]
-                  completeAuctionAnswer(auctionUpdated)
+                      .mapTo[Answer[AuctionInfo]]
+                  completeAuctionInfoAnswer(auctionUpdated)
                 }
               },
               get {
-                val (auctionUpdated: Future[AuctionAnswer]) =
-                  (auctionHouseActor ? GetAuction(auctioneerId, auctionId)).mapTo[AuctionAnswer]
-                completeAuctionAnswer(auctionUpdated)
+                val (auctionUpdated: Future[Answer[AuctionInfo]]) =
+                  (auctionHouseActor ? GetAuction(auctioneerId, auctionId)).mapTo[Answer[AuctionInfo]]
+                completeAuctionInfoAnswer(auctionUpdated)
               }
             )
           },
@@ -91,16 +84,16 @@ trait AuctionHouseRoutes extends JsonSupport {
               pathEnd {
                 concat(
                   put {
-                    val (auctionUpdated: Future[AuctionAnswer]) =
-                      (auctionHouseActor ? AddBidder(auctioneerId, auctionId, bidderId)).mapTo[AuctionAnswer]
-                    completeAuctionAnswer(auctionUpdated)
+                    val (auctionUpdated: Future[Answer[AuctionInfo]]) =
+                      (auctionHouseActor ? AddBidder(auctioneerId, auctionId, bidderId)).mapTo[Answer[AuctionInfo]]
+                    completeAuctionInfoAnswer(auctionUpdated)
                   },
                   post {
                     entity(as[BidParam]) { bidParam =>
                       val bid = Bid(bidder = bidderId, price = bidParam.bid)
-                      val (auctionUpdated: Future[AuctionAnswer]) =
-                        (auctionHouseActor ? AddBid(auctioneerId, auctionId, bid)).mapTo[AuctionAnswer]
-                      completeAuctionAnswer(auctionUpdated)
+                      val (auctionUpdated: Future[Answer[AuctionInfo]]) =
+                        (auctionHouseActor ? AddBid(auctioneerId, auctionId, bid)).mapTo[Answer[AuctionInfo]]
+                      completeAuctionInfoAnswer(auctionUpdated)
                     }
                   },
                 )
@@ -115,7 +108,7 @@ trait AuctionHouseRoutes extends JsonSupport {
         get {
           val (bidderBids: Future[Answer[BidsOfBidder]]) =
             (auctionHouseActor ? GetBidsOfBidderRequest(bidderId)).mapTo[Answer[BidsOfBidder]]
-          completeAnswer(bidderBids)
+          completeBidsOfBidderAnswer(bidderBids)
         }
       }
 

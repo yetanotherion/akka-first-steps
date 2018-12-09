@@ -56,13 +56,13 @@ class AuctionHouseActor extends Actor with ActorLogging with Timers {
         case Success(auctionRule) =>
           val ok = createAuction(auctioneerId, auctionId, auctionRule)
           if (ok) {
-            sender() ! AuctionAnswer(StatusCodes.Created, Left(Planned.toPlannedInfo(auctionRule)))
+            sender() ! Answer(StatusCodes.Created, Left(Planned.toPlannedInfo(auctionRule)))
           } else {
-            sender() ! AuctionAnswer(StatusCodes.Conflict, Right(
+            sender() ! Answer(StatusCodes.Conflict, Right(
               s"Auction $auctionId was already created by $auctioneerId"))
           }
         case Failure(e) =>
-          sender() ! AuctionAnswer(StatusCodes.BadRequest, Right(e.getMessage))
+          sender() ! Answer(StatusCodes.BadRequest, Right(e.getMessage))
       }
     }
     case UpdateAuction(auctioneerId, auctionId, auctionRuleParamsUpdate) =>
@@ -71,7 +71,9 @@ class AuctionHouseActor extends Actor with ActorLogging with Timers {
     case AddBidder(auctioneerId, auctionId, bidder) =>
       def onForward(actor: ActorRef) = {
         // Add the bidder to the cache, even if it may get refused
-        // (for example if the actor is not in the OpennedState)
+        // (for example if the actor is not in the OpennedState).
+        // Will be deleted when getting the request from an actor
+        // that knows the bidder does not belong there (see DeleteFromCache below)
         biddersToAuctionCache.addAuction(bidder, auctioneerId, auctionId, actor)
         OpennedMessage(NewBidder(bidder))
       }
@@ -112,7 +114,7 @@ class AuctionHouseActor extends Actor with ActorLogging with Timers {
         actor forward message(actor)
       }
       case None => {
-        sender() ! AuctionAnswer(StatusCodes.NotFound,
+        sender() ! Answer(StatusCodes.NotFound,
           Right(s"Auction $auctionId was not created by $auctioneerId"))
       }
     }
