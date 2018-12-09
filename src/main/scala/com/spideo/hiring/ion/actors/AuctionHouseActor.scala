@@ -10,19 +10,8 @@ import com.spideo.hiring.ion.auction.{Auctioneer, BiddersToAuctions, Planned}
 import com.spideo.hiring.ion.auction.Openned.{NewBid, NewBidder}
 import com.spideo.hiring.ion.routes.{AuctionRuleParams, AuctionRuleParamsUpdate}
 
-import scala.util.{Failure, Success, Try}
-
 object AuctionHouseActor {
   def props(): Props = Props(new AuctionHouseActor)
-
-  private def toAuctionRule(params: AuctionRuleParams): Try[AuctionRule] = {
-    try {
-      Success(AuctionRule(startDate = toAuctionDate(params.startDate), endDate = toAuctionDate(params.endDate),
-        item = params.item, initialPrice = params.initialPrice, increment = toIncrement(params.increment)))
-    } catch {
-      case e: IllegalArgumentException => Failure(e)
-    }
-  }
 
   final case class CreateAuction(auctioneerId: AuctioneerId, auctionId: AuctionId, auctionRule: AuctionRuleParams)
 
@@ -55,8 +44,8 @@ class AuctionHouseActor extends Actor with ActorLogging with Timers {
   override def receive = {
 
     case CreateAuction(auctioneerId, auctionId, auctionRuleParams) => {
-      toAuctionRule(auctionRuleParams) match {
-        case Success(auctionRule) =>
+      Planned.validateAuctionRuleParams(auctionRuleParams) match {
+        case Left(auctionRule) =>
           val ok = createAuction(auctioneerId, auctionId, auctionRule)
           if (ok) {
             sender() ! Answer(StatusCodes.Created, Left(Planned.toPlannedInfo(new Planned(rule=auctionRule,
@@ -65,8 +54,8 @@ class AuctionHouseActor extends Actor with ActorLogging with Timers {
             sender() ! Answer(StatusCodes.Conflict, Right(
               s"Auction $auctionId was already created by $auctioneerId"))
           }
-        case Failure(e) =>
-          sender() ! Answer(StatusCodes.BadRequest, Right(e.getMessage))
+        case Right(e) =>
+          sender() ! Answer(StatusCodes.BadRequest, Right(s"Got errors ${e.mkString("\n")}"))
       }
     }
     case UpdateAuction(auctioneerId, auctionId, auctionRuleParamsUpdate) =>

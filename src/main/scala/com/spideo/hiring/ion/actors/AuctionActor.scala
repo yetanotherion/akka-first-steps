@@ -62,6 +62,7 @@ class Auction(auctioneerId: AuctioneerId, auctionId: AuctionId, rule: AuctionRul
         case OpennedState(_) | ClosedState(_) => sender() ! messageNotSupportedAnswer
       }
     }
+
     case OpennedMessage(opennedMessage) => {
       state match {
         case OpennedState(openned) => {
