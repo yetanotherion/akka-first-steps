@@ -82,4 +82,5 @@ class BidsOfBidderActor(val bidder: Bidder) extends Actor with ActorLogging {
       }
     }
   }
+
 }

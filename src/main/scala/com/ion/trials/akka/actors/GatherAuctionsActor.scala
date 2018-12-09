@@ -73,5 +73,7 @@ class GatherAuctionsActor extends Actor with ActorLogging {
           waitingForGetAuctionInfo(respondTo, expectedAnswers, res))
       }
     }
+
   }
+
 }

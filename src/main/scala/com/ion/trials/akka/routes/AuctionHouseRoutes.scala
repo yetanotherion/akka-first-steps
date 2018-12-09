@@ -164,4 +164,5 @@ trait AuctionHouseRoutes extends JsonSupport {
     }
 
   lazy val auctionHouseRoutes = slash ~ auctioneerRoutes ~ bidderRoutes
+
 }

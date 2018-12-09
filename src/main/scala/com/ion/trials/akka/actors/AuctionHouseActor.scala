@@ -198,4 +198,5 @@ class AuctionHouseActor extends Actor with ActorLogging with Timers {
         true
     }
   }
+
 }

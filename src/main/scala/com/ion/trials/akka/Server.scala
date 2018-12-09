@@ -27,4 +27,5 @@ object Server extends App with AuctionHouseRoutes {
   println(s"Server online at http://localhost:5000/")
 
   Await.result(system.whenTerminated, Duration.Inf)
+
 }

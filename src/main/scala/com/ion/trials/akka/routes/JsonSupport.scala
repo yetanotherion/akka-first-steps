@@ -27,6 +27,7 @@ trait JsonSupport extends SprayJsonSupport {
       }
     }
   }
+
   implicit val actionRuleParamsJsonFormat = jsonFormat5(AuctionRuleParams)
   implicit val auctionRulesParamsUpdateJsonFormat = jsonFormat5(
     AuctionRuleParamsUpdate)
@@ -41,4 +42,5 @@ trait JsonSupport extends SprayJsonSupport {
   implicit val bidsOfBidderJsonFormat = jsonFormat7(BidsOfBidderInOneAuction)
   implicit val bidsOfBiddersAnswersJsonFormat = jsonFormat1(BidsOfBidder)
   implicit val auctionInfosJsonFormat = jsonFormat1(AuctionInfos)
+
 }

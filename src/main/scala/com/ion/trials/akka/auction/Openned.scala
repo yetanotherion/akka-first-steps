@@ -80,4 +80,5 @@ class Openned(notStarted: Planned) {
     currentPrice = bid.price
     bids = bid :: bids
   }
+
 }
