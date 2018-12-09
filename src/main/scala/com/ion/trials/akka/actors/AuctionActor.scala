@@ -63,14 +63,14 @@ class Auction(auctioneerId: AuctioneerId,
    * all the answers require a message, and thus
    * the state will always be updated before answering something.
    */
-  def partialUpdateState: PartialFunction[Any, Any] = {
+  private def partialUpdateState: PartialFunction[Any, Any] = {
     case msg => {
       updateState()
       msg
     }
   }
 
-  def receiveMsg: Receive = {
+  private def receiveMsg: Receive = {
     case PlannedMessage(plannedMessage) => {
       state match {
         case PlannedState(planned) =>
@@ -142,7 +142,7 @@ class Auction(auctioneerId: AuctioneerId,
     }
   }
 
-  def messageNotSupportedAnswer =
+  private def messageNotSupportedAnswer =
     Answer(StatusCodes.BadRequest,
            Right(s"Message not supported in current state $state"))
 

@@ -24,21 +24,6 @@ object Planned {
 
   type UpdateOrError = Either[List[Update], List[String]]
 
-  val emptyUpdateOrError: UpdateOrError = Left(List())
-
-  def addMessage(res: UpdateOrError, message: Update) = {
-    res match {
-      case Left(ok)      => Left(message :: ok)
-      case Right(errors) => Right(errors)
-    }
-  }
-
-  def addError(res: UpdateOrError, error: String) = {
-    res match {
-      case Left(ok)      => Right(List(error))
-      case Right(errors) => Right(error :: errors)
-    }
-  }
   type PlannedMessageAnswer = Answer[AuctionInfo]
 
   def toPlannedInfo(planned: Planned): AuctionInfo = {
@@ -200,6 +185,22 @@ object Planned {
       Some(s"$newInitialPrice is negative")
     } else {
       None
+    }
+  }
+
+  private val emptyUpdateOrError: UpdateOrError = Left(List())
+
+  private def addMessage(res: UpdateOrError, message: Update) = {
+    res match {
+      case Left(ok)      => Left(message :: ok)
+      case Right(errors) => Right(errors)
+    }
+  }
+
+  private def addError(res: UpdateOrError, error: String) = {
+    res match {
+      case Left(ok)      => Right(List(error))
+      case Right(errors) => Right(error :: errors)
     }
   }
 

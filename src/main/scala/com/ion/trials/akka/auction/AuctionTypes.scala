@@ -57,9 +57,6 @@ object AuctionTypes {
   type BidsOfBidderAnswer = Either[BidsOfBidderInOneAuction, NotFound]
   final case class GetBidsOfBidderRequestAnswer(answer: BidsOfBidderAnswer)
 
-  private val dateFormat = DateTimeFormatter.ISO_OFFSET_DATE_TIME
-  private val zoneId = ZoneId.systemDefault()
-
   def toAuctionDate(date: String): AuctionDate = {
     try {
       val localDate = LocalDateTime.parse(date, dateFormat)
@@ -87,4 +84,8 @@ object AuctionTypes {
   def toIncrement(param: Integer): Increment = {
     Increment(param)
   }
+
+  private val dateFormat = DateTimeFormatter.ISO_OFFSET_DATE_TIME
+  private val zoneId = ZoneId.systemDefault()
+
 }

@@ -179,13 +179,13 @@ class AuctionHouseActor extends Actor with ActorLogging with Timers {
     }
   }
 
-  def getAuctioneer(auctioneerId: AuctioneerId): Auctioneer = {
+  private def getAuctioneer(auctioneerId: AuctioneerId): Auctioneer = {
     auctioneers.getOrElseUpdate(auctioneerId, new Auctioneer(auctioneerId))
   }
 
-  def createAuction(auctioneerId: AuctioneerId,
-                    auctionId: AuctionId,
-                    auctionRule: AuctionRule): Boolean = {
+  private def createAuction(auctioneerId: AuctioneerId,
+                            auctionId: AuctionId,
+                            auctionRule: AuctionRule): Boolean = {
     val auctioneer = getAuctioneer(auctioneerId)
     auctioneer.get(auctionId) match {
       case Some(_) => false
