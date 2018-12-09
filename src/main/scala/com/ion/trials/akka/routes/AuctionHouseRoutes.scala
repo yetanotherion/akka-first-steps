@@ -1,10 +1,9 @@
-package com.spideo.hiring.ion.routes
+package com.ion.trials.akka.routes
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
 import akka.http.scaladsl.model.{StatusCode, StatusCodes}
-import com.spideo.hiring.ion.actors.AuctionHouseActor._
-import com.spideo.hiring.ion.auction.AuctionTypes._
+import com.ion.trials.akka.auction.AuctionTypes._
 
 import scala.concurrent.duration._
 import akka.http.scaladsl.server.Directives._
@@ -15,8 +14,9 @@ import akka.http.scaladsl.server.directives.RouteDirectives.complete
 import scala.concurrent.Future
 import akka.pattern.ask
 import akka.util.Timeout
-import com.spideo.hiring.ion.actors.BidsOfBidderActor.BidsOfBidder
-import com.spideo.hiring.ion.actors.GatherAuctionsActor.AuctionInfos
+import com.ion.trials.akka.actors.AuctionHouseActor._
+import com.ion.trials.akka.actors.BidsOfBidderActor.BidsOfBidder
+import com.ion.trials.akka.actors.GatherAuctionsActor.AuctionInfos
 
 import scala.util.{Failure, Success}
 

@@ -1,8 +1,8 @@
-package com.spideo.hiring.ion.auction
+package com.ion.trials.akka.auction
 
 import akka.http.scaladsl.model.StatusCodes
-import com.spideo.hiring.ion.auction.AuctionTypes._
-import com.spideo.hiring.ion.routes.{AuctionRuleParams, AuctionRuleParamsUpdate}
+import com.ion.trials.akka.auction.AuctionTypes._
+import com.ion.trials.akka.routes.{AuctionRuleParams, AuctionRuleParamsUpdate}
 
 object Planned {
   type PlannedMessage = AuctionRuleParamsUpdate

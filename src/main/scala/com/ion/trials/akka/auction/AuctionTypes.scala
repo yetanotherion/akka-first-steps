@@ -1,7 +1,7 @@
-package com.spideo.hiring.ion.auction
+package com.ion.trials.akka.auction
 
-import java.time.{Instant, LocalDateTime, ZoneId, ZonedDateTime}
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
+import java.time.{Instant, LocalDateTime, ZoneId, ZonedDateTime}
 
 import akka.http.scaladsl.model.StatusCode
 

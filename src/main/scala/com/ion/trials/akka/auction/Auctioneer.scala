@@ -1,7 +1,7 @@
-package com.spideo.hiring.ion.auction
+package com.ion.trials.akka.auction
 
 import akka.actor.ActorRef
-import com.spideo.hiring.ion.auction.AuctionTypes.{AuctionId, AuctionKey, AuctioneerId}
+import AuctionTypes.{AuctionId, AuctionKey, AuctioneerId}
 
 class Auctioneer(val auctioneerId: AuctioneerId) {
   val auctions = scala.collection.mutable.HashMap.empty[AuctionId, ActorRef]

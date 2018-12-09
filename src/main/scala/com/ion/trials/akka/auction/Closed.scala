@@ -1,6 +1,6 @@
-package com.spideo.hiring.ion.auction
+package com.ion.trials.akka.auction
 
-import com.spideo.hiring.ion.auction.AuctionTypes.AuctionInfo
+import AuctionTypes.AuctionInfo
 
 object Closed {
   def toClosedInfo(closed: Closed): AuctionInfo = {

@@ -1,14 +1,14 @@
-package com.spideo.hiring.ion.actors
+package com.ion.trials.akka.actors
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, Timers}
 import akka.http.scaladsl.model.StatusCodes
-import com.spideo.hiring.ion.actors.Auction.{GetMessage, OpennedMessage, PlannedMessage}
-import com.spideo.hiring.ion.actors.BidsOfBidderActor.{BidsOfBidder, BidsOfBidderRequest, DeleteFromCache}
-import com.spideo.hiring.ion.actors.GatherAuctionsActor.{AuctionInfos, GatherAuctionsActorRequest}
-import com.spideo.hiring.ion.auction.AuctionTypes._
-import com.spideo.hiring.ion.auction.{Auctioneer, BiddersToAuctions, Planned}
-import com.spideo.hiring.ion.auction.Openned.{NewBid, NewBidder}
-import com.spideo.hiring.ion.routes.{AuctionRuleParams, AuctionRuleParamsUpdate}
+import com.ion.trials.akka.actors.Auction.{GetMessage, OpennedMessage, PlannedMessage}
+import com.ion.trials.akka.actors.BidsOfBidderActor.{BidsOfBidder, BidsOfBidderRequest, DeleteFromCache}
+import com.ion.trials.akka.actors.GatherAuctionsActor.{AuctionInfos, GatherAuctionsActorRequest}
+import com.ion.trials.akka.auction.AuctionTypes._
+import com.ion.trials.akka.auction.Openned.{NewBid, NewBidder}
+import com.ion.trials.akka.auction.{Auctioneer, BiddersToAuctions, Planned}
+import com.ion.trials.akka.routes.{AuctionRuleParams, AuctionRuleParamsUpdate}
 
 object AuctionHouseActor {
   def props(): Props = Props(new AuctionHouseActor)

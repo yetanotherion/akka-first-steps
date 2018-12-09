@@ -1,10 +1,10 @@
-package com.spideo.hiring.ion.routes
+package com.ion.trials.akka.routes
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import com.spideo.hiring.ion.actors.BidsOfBidderActor.BidsOfBidder
-import com.spideo.hiring.ion.actors.GatherAuctionsActor.AuctionInfos
-import com.spideo.hiring.ion.auction.AuctionTypes
-import com.spideo.hiring.ion.auction.AuctionTypes._
+import com.ion.trials.akka.actors.BidsOfBidderActor.BidsOfBidder
+import com.ion.trials.akka.actors.GatherAuctionsActor.AuctionInfos
+import com.ion.trials.akka.auction.AuctionTypes
+import com.ion.trials.akka.auction.AuctionTypes._
 import spray.json.{DefaultJsonProtocol, DeserializationException, JsString, JsValue, RootJsonFormat}
 
 trait JsonSupport extends SprayJsonSupport {

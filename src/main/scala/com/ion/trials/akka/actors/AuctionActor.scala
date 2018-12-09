@@ -1,9 +1,9 @@
-package com.spideo.hiring.ion.actors
+package com.ion.trials.akka.actors
 
 import akka.actor.{Actor, ActorLogging, Props}
 import akka.http.scaladsl.model.StatusCodes
-import com.spideo.hiring.ion.auction.AuctionTypes._
-import com.spideo.hiring.ion.auction.{AuctionTypes, Closed, Openned, Planned}
+import com.ion.trials.akka.auction.{AuctionTypes, Closed, Openned, Planned}
+import com.ion.trials.akka.auction.AuctionTypes._
 
 sealed trait State
 

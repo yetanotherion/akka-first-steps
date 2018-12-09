@@ -1,7 +1,7 @@
-package com.spideo.hiring.ion.auction
+package com.ion.trials.akka.auction
 
 import akka.actor.ActorRef
-import com.spideo.hiring.ion.auction.AuctionTypes.{AuctionId, AuctionKey, AuctioneerId, Bidder}
+import com.ion.trials.akka.auction.AuctionTypes.{AuctionId, AuctionKey, AuctioneerId, Bidder}
 
 class BiddersToAuctions {
 

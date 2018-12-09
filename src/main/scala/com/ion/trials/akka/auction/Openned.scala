@@ -1,7 +1,7 @@
-package com.spideo.hiring.ion.auction
+package com.ion.trials.akka.auction
 
 import akka.http.scaladsl.model.StatusCodes
-import com.spideo.hiring.ion.auction.AuctionTypes._
+import com.ion.trials.akka.auction.AuctionTypes._
 
 object Openned {
 

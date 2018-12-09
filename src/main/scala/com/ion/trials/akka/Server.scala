@@ -1,15 +1,14 @@
-package com.spideo.hiring.ion
+package com.ion.trials.akka
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
-import com.spideo.hiring.ion.actors.AuctionHouseActor
-import com.spideo.hiring.ion.routes.AuctionHouseRoutes
+import com.ion.trials.akka.actors.AuctionHouseActor
+import com.ion.trials.akka.routes.AuctionHouseRoutes
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-
 
 object Server extends App with AuctionHouseRoutes {
 
