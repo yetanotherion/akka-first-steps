@@ -32,9 +32,6 @@ object AuctionHouseActor {
   final case class AddBidder(auctioneerId: AuctioneerId, auctionId: AuctionId, bidder: Bidder)
 
   final case class AddBid(auctioneerId: AuctioneerId, auctionId: AuctionId, bid: Bid)
-
-  final case class RetryGetAuctionsRelatedToBidder(bidder: Bidder)
-
 }
 
 class AuctionHouseActor extends Actor with ActorLogging with Timers {
