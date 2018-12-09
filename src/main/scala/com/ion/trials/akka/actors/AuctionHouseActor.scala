@@ -2,9 +2,20 @@ package com.ion.trials.akka.actors
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, Timers}
 import akka.http.scaladsl.model.StatusCodes
-import com.ion.trials.akka.actors.Auction.{GetMessage, OpennedMessage, PlannedMessage}
-import com.ion.trials.akka.actors.BidsOfBidderActor.{BidsOfBidder, BidsOfBidderRequest, DeleteFromCache}
-import com.ion.trials.akka.actors.GatherAuctionsActor.{AuctionInfos, GatherAuctionsActorRequest}
+import com.ion.trials.akka.actors.Auction.{
+  GetMessage,
+  OpennedMessage,
+  PlannedMessage
+}
+import com.ion.trials.akka.actors.BidsOfBidderActor.{
+  BidsOfBidder,
+  BidsOfBidderRequest,
+  DeleteFromCache
+}
+import com.ion.trials.akka.actors.GatherAuctionsActor.{
+  AuctionInfos,
+  GatherAuctionsActorRequest
+}
 import com.ion.trials.akka.auction.AuctionTypes._
 import com.ion.trials.akka.auction.Openned.{NewBid, NewBidder}
 import com.ion.trials.akka.auction.{Auctioneer, BiddersToAuctions, Planned}
@@ -13,15 +24,23 @@ import com.ion.trials.akka.routes.{AuctionRuleParams, AuctionRuleParamsUpdate}
 object AuctionHouseActor {
   def props(): Props = Props(new AuctionHouseActor)
 
-  final case class CreateAuction(auctioneerId: AuctioneerId, auctionId: AuctionId, auctionRule: AuctionRuleParams)
+  final case class CreateAuction(auctioneerId: AuctioneerId,
+                                 auctionId: AuctionId,
+                                 auctionRule: AuctionRuleParams)
 
-  final case class UpdateAuction(auctioneerId: AuctioneerId, auctionId: AuctionId, auctionRule: AuctionRuleParamsUpdate)
+  final case class UpdateAuction(auctioneerId: AuctioneerId,
+                                 auctionId: AuctionId,
+                                 auctionRule: AuctionRuleParamsUpdate)
 
   final case class GetAuction(auctioneerId: AuctioneerId, auctionId: AuctionId)
 
-  final case class AddBidder(auctioneerId: AuctioneerId, auctionId: AuctionId, bidder: Bidder)
+  final case class AddBidder(auctioneerId: AuctioneerId,
+                             auctionId: AuctionId,
+                             bidder: Bidder)
 
-  final case class AddBid(auctioneerId: AuctioneerId, auctionId: AuctionId, bid: Bid)
+  final case class AddBid(auctioneerId: AuctioneerId,
+                          auctionId: AuctionId,
+                          bid: Bid)
 
   final case object GetAuctions
 
@@ -37,7 +56,8 @@ class AuctionHouseActor extends Actor with ActorLogging with Timers {
 
   override def postStop(): Unit = log.info("AuctionHouse stopped")
 
-  val auctioneers = scala.collection.mutable.HashMap.empty[AuctioneerId, Auctioneer]
+  val auctioneers =
+    scala.collection.mutable.HashMap.empty[AuctioneerId, Auctioneer]
 
   val biddersToAuctionCache = new BiddersToAuctions()
 
@@ -48,18 +68,26 @@ class AuctionHouseActor extends Actor with ActorLogging with Timers {
         case Left(auctionRule) =>
           val ok = createAuction(auctioneerId, auctionId, auctionRule)
           if (ok) {
-            sender() ! Answer(StatusCodes.Created, Left(Planned.toPlannedInfo(new Planned(rule=auctionRule,
-              auctionId=auctionId, auctioneerId=auctioneerId))))
+            sender() ! Answer(StatusCodes.Created,
+                              Left(
+                                Planned.toPlannedInfo(
+                                  new Planned(rule = auctionRule,
+                                              auctionId = auctionId,
+                                              auctioneerId = auctioneerId))))
           } else {
-            sender() ! Answer(StatusCodes.Conflict, Right(
-              s"Auction $auctionId was already created by $auctioneerId"))
+            sender() ! Answer(
+              StatusCodes.Conflict,
+              Right(s"Auction $auctionId was already created by $auctioneerId"))
           }
         case Right(e) =>
-          sender() ! Answer(StatusCodes.BadRequest, Right(s"Got errors ${e.mkString("\n")}"))
+          sender() ! Answer(StatusCodes.BadRequest,
+                            Right(s"Got errors ${e.mkString("\n")}"))
       }
     }
     case UpdateAuction(auctioneerId, auctionId, auctionRuleParamsUpdate) =>
-      forwardToActor(auctioneerId, auctionId, _ => PlannedMessage(auctionRuleParamsUpdate))
+      forwardToActor(auctioneerId,
+                     auctionId,
+                     _ => PlannedMessage(auctionRuleParamsUpdate))
 
     case AddBidder(auctioneerId, auctionId, bidder) =>
       def onForward(actor: ActorRef) = {
@@ -80,33 +108,40 @@ class AuctionHouseActor extends Actor with ActorLogging with Timers {
       forwardToActor(auctioneerId, auctionId, _ => GetMessage)
 
     case DeleteFromCache(notFound) => {
-      biddersToAuctionCache.deleteAuctionFromBidder(bidder = notFound.bidder,
-        auctionId = notFound.auctionId, auctioneerId = notFound.auctioneerId)
+      biddersToAuctionCache.deleteAuctionFromBidder(
+        bidder = notFound.bidder,
+        auctionId = notFound.auctionId,
+        auctioneerId = notFound.auctioneerId)
     }
 
     /* 1 -> N  */
     case GetBidsOfBidderRequest(bidder) => {
       val actors = biddersToAuctionCache.getActors(bidder)
       actors.isEmpty match {
-        case true => sender() != Answer(StatusCodes.OK, Left(BidsOfBidder(bids = List())))
+        case true =>
+          sender() != Answer(StatusCodes.OK, Left(BidsOfBidder(bids = List())))
         case false => {
           /* this actor will stop by itself when done or upon timeout */
-          val newActor = context.actorOf(BidsOfBidderActor.props(bidder), "BidsOfBidder")
-          newActor ! BidsOfBidderRequest(bidder = bidder, auctions = actors, respondTo = sender)
+          val newActor =
+            context.actorOf(BidsOfBidderActor.props(bidder), "BidsOfBidder")
+          newActor ! BidsOfBidderRequest(bidder = bidder,
+                                         auctions = actors,
+                                         respondTo = sender)
         }
       }
     }
 
     case GetAuctions => {
-      val auctions = auctioneers.values.foldLeft(List.empty[Tuple2[AuctionKey, ActorRef]]) {
-        case (res, auctioneer) => res ::: auctioneer.getAllAuctions()
-      }
+      val auctions =
+        auctioneers.values.foldLeft(List.empty[Tuple2[AuctionKey, ActorRef]]) {
+          case (res, auctioneer) => res ::: auctioneer.getAllAuctions()
+        }
       sendGetAuctionsQuery(auctions, sender)
     }
 
     case GetAuctioneersAuctions(auctioneerId) => {
       val auctions = auctioneers.get(auctioneerId) match {
-        case None => List()
+        case None          => List()
         case Some(auction) => auction.getAllAuctions()
       }
       sendGetAuctionsQuery(auctions, sender)
@@ -114,27 +149,31 @@ class AuctionHouseActor extends Actor with ActorLogging with Timers {
 
   }
 
-  private def sendGetAuctionsQuery(auctions: List[Tuple2[AuctionKey, ActorRef]], sender: ActorRef): Unit = {
+  private def sendGetAuctionsQuery(auctions: List[Tuple2[AuctionKey, ActorRef]],
+                                   sender: ActorRef): Unit = {
     /* this actor will stop by itself when done or upon timeout */
     auctions.isEmpty match {
       case true => sender ! Answer(StatusCodes.OK, Left(AuctionInfos(List())))
       case false => {
-        val newActor = context.actorOf(GatherAuctionsActor.props(), "GatherAuctionsActor")
-        newActor ! GatherAuctionsActorRequest(auctions = auctions, respondTo = sender)
+        val newActor =
+          context.actorOf(GatherAuctionsActor.props(), "GatherAuctionsActor")
+        newActor ! GatherAuctionsActorRequest(auctions = auctions,
+                                              respondTo = sender)
       }
     }
   }
 
-  private def forwardToActor(auctioneerId: AuctioneerId, auctionId: AuctionId, message: ActorRef => Auction.Message)
-  : Unit =
-  {
+  private def forwardToActor(auctioneerId: AuctioneerId,
+                             auctionId: AuctionId,
+                             message: ActorRef => Auction.Message): Unit = {
     val auctioneer = getAuctioneer(auctioneerId)
     auctioneer.get(auctionId) match {
       case Some(actor) => {
         actor forward message(actor)
       }
       case None => {
-        sender() ! Answer(StatusCodes.NotFound,
+        sender() ! Answer(
+          StatusCodes.NotFound,
           Right(s"Auction $auctionId was not created by $auctioneerId"))
       }
     }
@@ -144,12 +183,16 @@ class AuctionHouseActor extends Actor with ActorLogging with Timers {
     auctioneers.getOrElseUpdate(auctioneerId, new Auctioneer(auctioneerId))
   }
 
-  def createAuction(auctioneerId: AuctioneerId, auctionId: AuctionId, auctionRule: AuctionRule): Boolean = {
+  def createAuction(auctioneerId: AuctioneerId,
+                    auctionId: AuctionId,
+                    auctionRule: AuctionRule): Boolean = {
     val auctioneer = getAuctioneer(auctioneerId)
     auctioneer.get(auctionId) match {
       case Some(_) => false
       case None =>
-        val auctionProps = Auction.props(auctioneerId = auctioneerId, auctionId = auctionId, rule = auctionRule)
+        val auctionProps = Auction.props(auctioneerId = auctioneerId,
+                                         auctionId = auctionId,
+                                         rule = auctionRule)
         val res = context.actorOf(auctionProps)
         getAuctioneer(auctioneerId).add(auctionId, res)
         true

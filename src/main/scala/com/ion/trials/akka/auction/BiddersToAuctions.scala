@@ -1,16 +1,29 @@
 package com.ion.trials.akka.auction
 
 import akka.actor.ActorRef
-import com.ion.trials.akka.auction.AuctionTypes.{AuctionId, AuctionKey, AuctioneerId, Bidder}
+import com.ion.trials.akka.auction.AuctionTypes.{
+  AuctionId,
+  AuctionKey,
+  AuctioneerId,
+  Bidder
+}
 
 class BiddersToAuctions {
 
-  private val biddersToAuctions = scala.collection.mutable.HashMap.empty[Bidder, scala.collection.mutable.Set[Tuple2[AuctionKey, ActorRef]]]
+  private val biddersToAuctions = scala.collection.mutable.HashMap
+    .empty[Bidder, scala.collection.mutable.Set[Tuple2[AuctionKey, ActorRef]]]
 
-  def addAuction(bidder: Bidder, auctioneerId: AuctioneerId, auctionId: AuctionId, actor: ActorRef): Unit = {
+  def addAuction(bidder: Bidder,
+                 auctioneerId: AuctioneerId,
+                 auctionId: AuctionId,
+                 actor: ActorRef): Unit = {
     val _ = biddersToAuctions
-      .getOrElseUpdate(bidder, scala.collection.mutable.Set[Tuple2[AuctionKey, ActorRef]]())
-      .add(Tuple2(AuctionKey(auctioneerId=auctioneerId, auctionId=auctionId), actor))
+      .getOrElseUpdate(
+        bidder,
+        scala.collection.mutable.Set[Tuple2[AuctionKey, ActorRef]]())
+      .add(
+        Tuple2(AuctionKey(auctioneerId = auctioneerId, auctionId = auctionId),
+               actor))
     ()
   }
 
@@ -18,11 +31,12 @@ class BiddersToAuctions {
     biddersToAuctions.getOrElse(bidder, List()).toList
   }
 
-  def deleteAuctionFromBidder(bidder: Bidder, auctioneerId: AuctioneerId, auctionId: AuctionId): Unit = {
-    biddersToAuctions.get(bidder).map {
-      auctions =>
-        val key = AuctionKey(auctionId = auctionId, auctioneerId = auctioneerId)
-        biddersToAuctions += bidder -> auctions.filter(x => x._1 != key)
+  def deleteAuctionFromBidder(bidder: Bidder,
+                              auctioneerId: AuctioneerId,
+                              auctionId: AuctionId): Unit = {
+    biddersToAuctions.get(bidder).map { auctions =>
+      val key = AuctionKey(auctionId = auctionId, auctioneerId = auctioneerId)
+      biddersToAuctions += bidder -> auctions.filter(x => x._1 != key)
     }
   }
 

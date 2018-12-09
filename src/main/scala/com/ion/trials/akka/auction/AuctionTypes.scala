@@ -21,53 +21,59 @@ object AuctionTypes {
   final case class BidParam(bid: Price)
   final case class Bid(bidder: Bidder, price: Price)
 
-  final case class AuctionRule(
-    var startDate: AuctionDate, var endDate: AuctionDate,
-    var item: Item, var initialPrice: Price, var increment: Increment)
+  final case class AuctionRule(var startDate: AuctionDate,
+                               var endDate: AuctionDate,
+                               var item: Item,
+                               var initialPrice: Price,
+                               var increment: Increment)
 
   final case class AuctionInfo(
-    rule: AuctionRule,
-    state: String,
-    bidders: List[Bidder],
-    bids: List[Bid],
-    winner: Option[Bid],
-    currentPrice: Option[Price],
-    auctionId: AuctionId,
-    auctioneerId: AuctioneerId
+      rule: AuctionRule,
+      state: String,
+      bidders: List[Bidder],
+      bids: List[Bid],
+      winner: Option[Bid],
+      currentPrice: Option[Price],
+      auctionId: AuctionId,
+      auctioneerId: AuctioneerId
   )
 
   final case class Answer[T](status: StatusCode, msg: Either[T, String])
 
   /* API <-> auctionHouse */
-  final case class BidsOfBidderInOneAuction(
-    bidder: Bidder,
-    state: String,
-    bidders: List[Bidder],
-    auctionId: AuctionId, auctioneerId: AuctioneerId,
-    bestBid: Option[Bid],
-    executedBids: List[Bid])
+  final case class BidsOfBidderInOneAuction(bidder: Bidder,
+                                            state: String,
+                                            bidders: List[Bidder],
+                                            auctionId: AuctionId,
+                                            auctioneerId: AuctioneerId,
+                                            bestBid: Option[Bid],
+                                            executedBids: List[Bid])
   final case class GetBidsOfBidderRequest(bidder: Bidder)
 
-
   /* auctionHouse <-> auction */
-  final case class NotFound(bidder: Bidder, auctioneerId: AuctioneerId, auctionId: AuctionId)
+  final case class NotFound(bidder: Bidder,
+                            auctioneerId: AuctioneerId,
+                            auctionId: AuctionId)
   type BidsOfBidderAnswer = Either[BidsOfBidderInOneAuction, NotFound]
   final case class GetBidsOfBidderRequestAnswer(answer: BidsOfBidderAnswer)
 
   private val dateFormat = DateTimeFormatter.ISO_OFFSET_DATE_TIME
-  private val zoneId  = ZoneId.systemDefault()
+  private val zoneId = ZoneId.systemDefault()
 
   def toAuctionDate(date: String): AuctionDate = {
     try {
       val localDate = LocalDateTime.parse(date, dateFormat)
       AuctionDate(localDate.atZone(zoneId).toEpochSecond)
     } catch {
-      case e: DateTimeParseException => throw new IllegalArgumentException(s"$date is an invalid date")
+      case e: DateTimeParseException =>
+        throw new IllegalArgumentException(s"$date is an invalid date")
     }
   }
 
   def fromAuctionDate(auctionDate: AuctionDate): String = {
-    ZonedDateTime.ofInstant(Instant.ofEpochSecond(auctionDate.epochInSec), zoneId).format(dateFormat)
+    ZonedDateTime
+      .ofInstant(Instant.ofEpochSecond(auctionDate.epochInSec), zoneId)
+      .format(dateFormat)
   }
 
   def tryToAuctionDate(date: String): Either[AuctionDate, String] = {

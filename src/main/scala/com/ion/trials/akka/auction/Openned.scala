@@ -12,7 +12,8 @@ object Openned {
   final case class NewBid(newBid: Bid) extends Message
 
   def toOpennedInfo(openned: Openned): AuctionInfo = {
-    AuctionInfo(rule = openned.rule,
+    AuctionInfo(
+      rule = openned.rule,
       state = "open",
       bidders = openned.bidders.toList,
       bids = openned.bids,
@@ -24,8 +25,7 @@ object Openned {
   }
 }
 
-class Openned(notStarted: Planned)
-{
+class Openned(notStarted: Planned) {
 
   import Openned._
 
@@ -38,7 +38,7 @@ class Openned(notStarted: Planned)
 
   def receive(message: Message): Answer[AuctionInfo] = {
     message match {
-      case NewBid(bid) => receiveBid(bid)
+      case NewBid(bid)       => receiveBid(bid)
       case NewBidder(bidder) => receiveBidder(bidder)
     }
   }
@@ -53,8 +53,8 @@ class Openned(notStarted: Planned)
     }
   }
 
-  private def receiveBidder(bidder: AuctionTypes.Bidder): Answer[AuctionInfo] =
-  {
+  private def receiveBidder(
+      bidder: AuctionTypes.Bidder): Answer[AuctionInfo] = {
     bidders.add(bidder)
     Answer(StatusCodes.OK, Left(toOpennedInfo(this)))
   }
@@ -81,4 +81,3 @@ class Openned(notStarted: Planned)
     bids = bid :: bids
   }
 }
-

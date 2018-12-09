@@ -12,20 +12,21 @@ import scala.concurrent.duration.Duration
 
 object Server extends App with AuctionHouseRoutes {
 
-    implicit val system = ActorSystem("auction-house")
-    implicit val materializer = ActorMaterializer()
+  implicit val system = ActorSystem("auction-house")
+  implicit val materializer = ActorMaterializer()
 
-    implicit val executionContext = system.dispatcher
+  implicit val executionContext = system.dispatcher
 
-    val auctionHouseActor: ActorRef = system.actorOf(AuctionHouseActor.props, "auctionHouseActor")
+  val auctionHouseActor: ActorRef =
+    system.actorOf(AuctionHouseActor.props, "auctionHouseActor")
 
-    //#main-class
-    lazy val routes: Route = auctionHouseRoutes
+  //#main-class
+  lazy val routes: Route = auctionHouseRoutes
 
-    //#http-server
-    Http().bindAndHandle(routes, "localhost", 5000)
+  //#http-server
+  Http().bindAndHandle(routes, "localhost", 5000)
 
-    println(s"Server online at http://localhost:5000/")
+  println(s"Server online at http://localhost:5000/")
 
-    Await.result(system.whenTerminated, Duration.Inf)
+  Await.result(system.whenTerminated, Duration.Inf)
 }

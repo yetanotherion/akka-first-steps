@@ -15,8 +15,10 @@ class Auctioneer(val auctioneerId: AuctioneerId) {
   }
 
   def getAllAuctions(): List[Tuple2[AuctionKey, ActorRef]] = {
-    auctions.foldLeft(List.empty[Tuple2[AuctionKey, ActorRef]]) { case (res, (auctionId, actor)) =>
-        Tuple2(AuctionKey(auctioneerId=auctioneerId, auctionId=auctionId), actor) :: res
+    auctions.foldLeft(List.empty[Tuple2[AuctionKey, ActorRef]]) {
+      case (res, (auctionId, actor)) =>
+        Tuple2(AuctionKey(auctioneerId = auctioneerId, auctionId = auctionId),
+               actor) :: res
     }
   }
 

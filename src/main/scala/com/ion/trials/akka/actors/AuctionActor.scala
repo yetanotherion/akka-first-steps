@@ -14,14 +14,18 @@ final case class OpennedState(onGoingAuction: Openned) extends State
 final case class ClosedState(endedAuction: Closed) extends State
 
 object Auction {
-  def props(auctioneerId: AuctioneerId, auctionId: AuctionId, rule: AuctionRule): Props = Props(
-    new Auction(auctioneerId, auctionId, rule))
+  def props(auctioneerId: AuctioneerId,
+            auctionId: AuctionId,
+            rule: AuctionRule): Props =
+    Props(new Auction(auctioneerId, auctionId, rule))
 
   sealed abstract class Message
 
-  final case class PlannedMessage(plannedMessage: Planned.PlannedMessage) extends Message
+  final case class PlannedMessage(plannedMessage: Planned.PlannedMessage)
+      extends Message
 
-  final case class OpennedMessage(opennedMessage: Openned.Message) extends Message
+  final case class OpennedMessage(opennedMessage: Openned.Message)
+      extends Message
 
   final object GetMessage extends Message
 
@@ -35,11 +39,18 @@ object Auction {
 
 }
 
-class Auction(auctioneerId: AuctioneerId, auctionId: AuctionId, rule: AuctionRule) extends Actor with ActorLogging {
+class Auction(auctioneerId: AuctioneerId,
+              auctionId: AuctionId,
+              rule: AuctionRule)
+    extends Actor
+    with ActorLogging {
 
   import Auction._
 
-  private var state: State = PlannedState(new Planned(rule=rule, auctioneerId=auctioneerId, auctionId=auctionId))
+  private var state: State = PlannedState(
+    new Planned(rule = rule,
+                auctioneerId = auctioneerId,
+                auctionId = auctionId))
 
   override def preStart(): Unit = log.info("Auction started")
 
@@ -64,7 +75,8 @@ class Auction(auctioneerId: AuctioneerId, auctionId: AuctionId, rule: AuctionRul
       state match {
         case PlannedState(planned) =>
           sender() ! planned.receive(plannedMessage)
-        case OpennedState(_) | ClosedState(_) => sender() ! messageNotSupportedAnswer
+        case OpennedState(_) | ClosedState(_) =>
+          sender() ! messageNotSupportedAnswer
       }
     }
 
@@ -73,17 +85,20 @@ class Auction(auctioneerId: AuctioneerId, auctionId: AuctionId, rule: AuctionRul
         case OpennedState(openned) => {
           sender() ! openned.receive(opennedMessage)
         }
-        case PlannedState(_) | ClosedState(_) => sender() ! messageNotSupportedAnswer
+        case PlannedState(_) | ClosedState(_) =>
+          sender() ! messageNotSupportedAnswer
       }
     }
 
     case GetMessage => {
       state match {
         case PlannedState(planned) => {
-          sender() ! Answer(StatusCodes.OK, Left(Planned.toPlannedInfo(planned)))
+          sender() ! Answer(StatusCodes.OK,
+                            Left(Planned.toPlannedInfo(planned)))
         }
         case OpennedState(openned) => {
-          sender() ! Answer(StatusCodes.OK, Left(Openned.toOpennedInfo(openned)))
+          sender() ! Answer(StatusCodes.OK,
+                            Left(Openned.toOpennedInfo(openned)))
         }
         case ClosedState(closed) => {
           sender() ! Answer(StatusCodes.OK, Left(Closed.toClosedInfo(closed)))
@@ -112,17 +127,24 @@ class Auction(auctioneerId: AuctioneerId, auctionId: AuctionId, rule: AuctionRul
           sender() ! None
         }
         case OpennedState(openned) => {
-          sender() ! answerGetBidsOfBidder(bidder, openned.bidders.toSeq, openned.bids, state = "openned")
+          sender() ! answerGetBidsOfBidder(bidder,
+                                           openned.bidders.toSeq,
+                                           openned.bids,
+                                           state = "openned")
         }
         case ClosedState(closed) => {
-          sender() ! answerGetBidsOfBidder(bidder, closed.bidders, closed.bids, state = "closed")
+          sender() ! answerGetBidsOfBidder(bidder,
+                                           closed.bidders,
+                                           closed.bids,
+                                           state = "closed")
         }
       }
     }
   }
 
-  def messageNotSupportedAnswer = Answer(StatusCodes.BadRequest,
-    Right(s"Message not supported in current state $state"))
+  def messageNotSupportedAnswer =
+    Answer(StatusCodes.BadRequest,
+           Right(s"Message not supported in current state $state"))
 
   private def updateState(): Unit = {
     val currentTime = getCurrentTime()
@@ -130,8 +152,7 @@ class Auction(auctioneerId: AuctioneerId, auctionId: AuctionId, rule: AuctionRul
       case PlannedState(notStarted) => {
         if (didEnd(currentTime, notStarted.rule)) {
           state = ClosedState(new Closed(new Openned(notStarted)))
-        }
-        else if (didStart(currentTime, notStarted.rule)) {
+        } else if (didStart(currentTime, notStarted.rule)) {
           state = OpennedState(new Openned(notStarted))
         }
       }
@@ -145,21 +166,25 @@ class Auction(auctioneerId: AuctioneerId, auctionId: AuctionId, rule: AuctionRul
   }
 
   private def answerGetBidsOfBidder(
-    bidder: Bidder, bidders: Seq[AuctionTypes.Bidder], bids: List[Bid],
-    state: String): GetBidsOfBidderRequestAnswer =
-  {
+      bidder: Bidder,
+      bidders: Seq[AuctionTypes.Bidder],
+      bids: List[Bid],
+      state: String): GetBidsOfBidderRequestAnswer = {
     val res = bidders.contains(bidder) match {
-      case false => Right(NotFound(bidder = bidder, auctionId = auctionId, auctioneerId = auctioneerId))
+      case false =>
+        Right(
+          NotFound(bidder = bidder,
+                   auctionId = auctionId,
+                   auctioneerId = auctioneerId))
       case true => {
         Left(
-          BidsOfBidderInOneAuction(
-            bidder = bidder,
-            state = state,
-            bidders = bidders.toList,
-            auctionId = auctionId,
-            auctioneerId = auctioneerId,
-            bestBid = bids.headOption,
-            executedBids = bids)
+          BidsOfBidderInOneAuction(bidder = bidder,
+                                   state = state,
+                                   bidders = bidders.toList,
+                                   auctionId = auctionId,
+                                   auctioneerId = auctioneerId,
+                                   bestBid = bids.headOption,
+                                   executedBids = bids)
         )
       }
     }
@@ -175,6 +200,3 @@ class Auction(auctioneerId: AuctioneerId, auctionId: AuctionId, rule: AuctionRul
   }
 
 }
-
-
-
