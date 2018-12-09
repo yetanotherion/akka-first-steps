@@ -18,6 +18,8 @@ object Openned {
       bids = openned.bids,
       winner = None,
       currentPrice = Some(openned.currentPrice),
+      auctioneerId = openned.auctioneerId,
+      auctionId = openned.auctionId
     )
   }
 }
@@ -31,6 +33,8 @@ class Openned(notStarted: Planned)
   var currentPrice = notStarted.rule.initialPrice
   val rule = notStarted.rule
   val bidders = scala.collection.mutable.Set[Bidder]()
+  val auctioneerId = notStarted.auctioneerId
+  val auctionId = notStarted.auctionId
 
   def receive(message: Message): Answer[AuctionInfo] = {
     message match {

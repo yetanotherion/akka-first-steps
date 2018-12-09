@@ -25,6 +25,10 @@ object Auction {
 
   final object GetMessage extends Message
 
+  final object GetAuctionInfo extends Message
+
+  final case class GetAuctionInfoAnswer(answer: AuctionInfo)
+
   def getCurrentTime(): Long = {
     System.currentTimeMillis / 1000
   }
@@ -35,7 +39,7 @@ class Auction(auctioneerId: AuctioneerId, auctionId: AuctionId, rule: AuctionRul
 
   import Auction._
 
-  private var state: State = PlannedState(new Planned(rule))
+  private var state: State = PlannedState(new Planned(rule=rule, auctioneerId=auctioneerId, auctionId=auctionId))
 
   override def preStart(): Unit = log.info("Auction started")
 
@@ -66,10 +70,11 @@ class Auction(auctioneerId: AuctioneerId, auctionId: AuctionId, rule: AuctionRul
         case PlannedState(_) | ClosedState(_) => sender() ! messageNotSupportedAnswer
       }
     }
+
     case GetMessage => {
       state match {
         case PlannedState(planned) => {
-          sender() ! Answer(StatusCodes.OK, Left(Planned.toPlannedInfo(planned.rule)))
+          sender() ! Answer(StatusCodes.OK, Left(Planned.toPlannedInfo(planned)))
         }
         case OpennedState(openned) => {
           sender() ! Answer(StatusCodes.OK, Left(Openned.toOpennedInfo(openned)))
@@ -78,6 +83,21 @@ class Auction(auctioneerId: AuctioneerId, auctionId: AuctionId, rule: AuctionRul
           sender() ! Answer(StatusCodes.OK, Left(Closed.toClosedInfo(closed)))
         }
       }
+    }
+
+    case GetAuctionInfo => {
+      val res = state match {
+        case PlannedState(planned) => {
+          Planned.toPlannedInfo(planned)
+        }
+        case OpennedState(openned) => {
+          Openned.toOpennedInfo(openned)
+        }
+        case ClosedState(closed) => {
+          Closed.toClosedInfo(closed)
+        }
+      }
+      sender() ! GetAuctionInfoAnswer(res)
     }
 
     case GetBidsOfBidderRequest(bidder) => {

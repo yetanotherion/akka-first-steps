@@ -3,7 +3,8 @@ package com.spideo.hiring.ion.actors
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, Timers}
 import akka.http.scaladsl.model.StatusCodes
 import com.spideo.hiring.ion.actors.Auction.{GetMessage, OpennedMessage, PlannedMessage}
-import com.spideo.hiring.ion.actors.BidsOfBidderActor.{BidsOfBidderRequest, DeleteFromCache}
+import com.spideo.hiring.ion.actors.BidsOfBidderActor.{BidsOfBidder, BidsOfBidderRequest, DeleteFromCache}
+import com.spideo.hiring.ion.actors.GatherAuctionsActor.{AuctionInfos, GatherAuctionsActorRequest}
 import com.spideo.hiring.ion.auction.AuctionTypes._
 import com.spideo.hiring.ion.auction.{Auctioneer, BiddersToAuctions, Planned}
 import com.spideo.hiring.ion.auction.Openned.{NewBid, NewBidder}
@@ -32,6 +33,11 @@ object AuctionHouseActor {
   final case class AddBidder(auctioneerId: AuctioneerId, auctionId: AuctionId, bidder: Bidder)
 
   final case class AddBid(auctioneerId: AuctioneerId, auctionId: AuctionId, bid: Bid)
+
+  final case object GetAuctions
+
+  final case class GetAuctioneersAuctions(auctioneerId: AuctioneerId)
+
 }
 
 class AuctionHouseActor extends Actor with ActorLogging with Timers {
@@ -53,7 +59,8 @@ class AuctionHouseActor extends Actor with ActorLogging with Timers {
         case Success(auctionRule) =>
           val ok = createAuction(auctioneerId, auctionId, auctionRule)
           if (ok) {
-            sender() ! Answer(StatusCodes.Created, Left(Planned.toPlannedInfo(auctionRule)))
+            sender() ! Answer(StatusCodes.Created, Left(Planned.toPlannedInfo(new Planned(rule=auctionRule,
+              auctionId=auctionId, auctioneerId=auctioneerId))))
           } else {
             sender() ! Answer(StatusCodes.Conflict, Right(
               s"Auction $auctionId was already created by $auctioneerId"))
@@ -83,6 +90,11 @@ class AuctionHouseActor extends Actor with ActorLogging with Timers {
     case GetAuction(auctioneerId, auctionId) =>
       forwardToActor(auctioneerId, auctionId, _ => GetMessage)
 
+    case DeleteFromCache(notFound) => {
+      biddersToAuctionCache.deleteAuctionFromBidder(bidder = notFound.bidder,
+        auctionId = notFound.auctionId, auctioneerId = notFound.auctioneerId)
+    }
+
     /* 1 -> N  */
     case GetBidsOfBidderRequest(bidder) => {
       val actors = biddersToAuctionCache.getActors(bidder)
@@ -96,9 +108,31 @@ class AuctionHouseActor extends Actor with ActorLogging with Timers {
       }
     }
 
-    case DeleteFromCache(notFound) => {
-      biddersToAuctionCache.deleteAuctionFromBidder(bidder = notFound.bidder,
-        auctionId = notFound.auctionId, auctioneerId = notFound.auctioneerId)
+    case GetAuctions => {
+      val auctions = auctioneers.values.foldLeft(List.empty[Tuple2[AuctionKey, ActorRef]]) {
+        case (res, auctioneer) => res ::: auctioneer.getAllAuctions()
+      }
+      sendGetAuctionsQuery(auctions, sender)
+    }
+
+    case GetAuctioneersAuctions(auctioneerId) => {
+      val auctions = auctioneers.get(auctioneerId) match {
+        case None => List()
+        case Some(auction) => auction.getAllAuctions()
+      }
+      sendGetAuctionsQuery(auctions, sender)
+    }
+
+  }
+
+  private def sendGetAuctionsQuery(auctions: List[Tuple2[AuctionKey, ActorRef]], sender: ActorRef): Unit = {
+    /* this actor will stop by itself when done or upon timeout */
+    auctions.isEmpty match {
+      case true => sender ! Answer(StatusCodes.OK, Left(AuctionInfos(List())))
+      case false => {
+        val newActor = context.actorOf(GatherAuctionsActor.props(), "GatherAuctionsActor")
+        newActor ! GatherAuctionsActorRequest(auctions = auctions, respondTo = sender)
+      }
     }
   }
 
@@ -118,7 +152,7 @@ class AuctionHouseActor extends Actor with ActorLogging with Timers {
   }
 
   def getAuctioneer(auctioneerId: AuctioneerId): Auctioneer = {
-    auctioneers.getOrElseUpdate(auctioneerId, new Auctioneer())
+    auctioneers.getOrElseUpdate(auctioneerId, new Auctioneer(auctioneerId))
   }
 
   def createAuction(auctioneerId: AuctioneerId, auctionId: AuctionId, auctionRule: AuctionRule): Boolean = {

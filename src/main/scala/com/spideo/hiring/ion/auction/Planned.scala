@@ -37,18 +37,20 @@ object Planned {
   }
   type PlannedMessageAnswer = Answer[AuctionInfo]
 
-  def toPlannedInfo(auctionRule: AuctionRule): AuctionInfo = {
-    AuctionInfo(rule=auctionRule,
+  def toPlannedInfo(planned: Planned): AuctionInfo = {
+    AuctionInfo(rule=planned.rule,
       state="planned",
       bidders=List(),
       bids=List(),
       winner=None,
-      currentPrice=None
+      currentPrice=None,
+      auctionId=planned.auctionId,
+      auctioneerId=planned.auctioneerId
     )
   }
 }
 
-class Planned(val rule: AuctionRule) {
+class Planned(val rule: AuctionRule, val auctionId: AuctionId, val auctioneerId: AuctioneerId) {
   import Planned._
 
   def receive(message: PlannedMessage): PlannedMessageAnswer = {
@@ -56,7 +58,7 @@ class Planned(val rule: AuctionRule) {
     validateRawUpdates(instructions) match {
       case Left(updates) => {
         implementUpdates(updates)
-        Answer(StatusCodes.OK, Left(toPlannedInfo(rule)))
+        Answer(StatusCodes.OK, Left(toPlannedInfo(this)))
       }
       case Right(error) => Answer(StatusCodes.BadRequest, Right(s"invalid request: ${error.mkString(";")}"))
     }

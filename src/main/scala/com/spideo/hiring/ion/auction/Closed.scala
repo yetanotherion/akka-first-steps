@@ -10,15 +10,19 @@ object Closed {
       bids = closed.bids,
       winner = closed.winner,
       currentPrice = None,
+      auctionId = closed.auctionId,
+      auctioneerId = closed.auctioneerId
     )
   }
 }
 
-class Closed(onGoingAuction: Openned) {
-  val rule = onGoingAuction.rule
-  val bidders= onGoingAuction.bidders.toList
-  val currentPrice = onGoingAuction.currentPrice
-  val bids = onGoingAuction.bids.toList
+class Closed(openned: Openned) {
+  val rule = openned.rule
+  val auctionId = openned.auctionId
+  val auctioneerId = openned.auctioneerId
+  val bidders= openned.bidders.toList
+  val currentPrice = openned.currentPrice
+  val bids = openned.bids
   val winner = bids match {
     case List() => None
     case hd :: tl => Some(hd)

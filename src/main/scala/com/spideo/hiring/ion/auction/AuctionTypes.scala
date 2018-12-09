@@ -31,7 +31,9 @@ object AuctionTypes {
     bidders: List[Bidder],
     bids: List[Bid],
     winner: Option[Bid],
-    currentPrice: Option[Price]
+    currentPrice: Option[Price],
+    auctionId: AuctionId,
+    auctioneerId: AuctioneerId
   )
 
   final case class Answer[T](status: StatusCode, msg: Either[T, String])
@@ -45,7 +47,6 @@ object AuctionTypes {
     bestBid: Option[Bid],
     executedBids: List[Bid])
   final case class GetBidsOfBidderRequest(bidder: Bidder)
-  final case class BidsOfBidder(bids: List[BidsOfBidderInOneAuction])
 
 
   /* auctionHouse <-> auction */
