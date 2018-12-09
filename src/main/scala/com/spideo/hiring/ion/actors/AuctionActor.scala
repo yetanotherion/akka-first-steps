@@ -47,6 +47,11 @@ class Auction(auctioneerId: AuctioneerId, auctionId: AuctionId, rule: AuctionRul
 
   override def receive: Receive = partialUpdateState.andThen(receiveMsg)
 
+  /* This enables us not to create a timer to update the state.
+   * Assuming all information from the auction comes through this actor,
+   * all the answers require a message, and thus
+   * the state will always be updated before answering something.
+   */
   def partialUpdateState: PartialFunction[Any, Any] = {
     case msg => {
       updateState()
