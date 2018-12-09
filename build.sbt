@@ -1,4 +1,4 @@
-name := "akka-quickstart-scala"
+name := "akka-trial"
 
 version := "1.0"
 
@@ -6,6 +6,8 @@ scalaVersion := "2.12.6"
 
 lazy val akkaVersion = "2.5.18"
 lazy val akkaHttpVersion = "10.1.5"
+
+addSbtPlugin("com.geirsson" % "sbt-scalafmt" % "1.5.1")
 
 scalacOptions += "-Xfatal-warnings"
 scalacOptions += "-Ywarn-unused-import"
