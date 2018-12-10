@@ -14,7 +14,7 @@ object Openned {
   def toOpennedInfo(openned: Openned): AuctionInfo = {
     AuctionInfo(
       rule = openned.rule,
-      state = "open",
+      state = "openned",
       bidders = openned.bidders.toList,
       bids = openned.bids,
       winner = None,
