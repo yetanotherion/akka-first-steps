@@ -65,86 +65,94 @@ trait AuctionHouseRoutes extends JsonSupport {
   def completeAuctionInfosAnswer(answer: Future[Answer[AuctionInfos]]) =
     completeAnswer[AuctionInfos]((s, b) => complete(s, b), answer)
 
-  lazy val slash: Route =
-    pathSingleSlash {
-      get {
-        val (auctions: Future[Answer[AuctionInfos]]) =
-          (auctionHouseActor ? GetAuctions)
-            .mapTo[Answer[AuctionInfos]]
-        completeAuctionInfosAnswer(auctions)
-      }
-    }
-
   lazy val auctioneerRoutes: Route =
-    pathPrefix("auctioneer" / IntNumber) { auctioneerId =>
+    pathPrefix("auctioneer") {
       concat(
         pathEnd {
           get {
             val (auctions: Future[Answer[AuctionInfos]]) =
-              (auctionHouseActor ? GetAuctioneersAuctions(auctioneerId))
+              (auctionHouseActor ? GetAuctions)
                 .mapTo[Answer[AuctionInfos]]
             completeAuctionInfosAnswer(auctions)
           }
         },
-        pathPrefix("auction" / IntNumber) { auctionId =>
+        pathPrefix(IntNumber) { auctioneerId =>
           concat(
             pathEnd {
-              concat(
-                post {
-                  entity(as[AuctionRuleParams]) { auctionRuleParams =>
-                    val (auctionCreated: Future[Answer[AuctionInfo]]) =
-                      (auctionHouseActor ? CreateAuction(auctioneerId,
-                                                         auctionId,
-                                                         auctionRuleParams))
-                        .mapTo[Answer[AuctionInfo]]
-                    completeAuctionInfoAnswer(auctionCreated)
-                  }
-                },
-                put {
-                  entity(as[AuctionRuleParamsUpdate]) {
-                    auctionRuleParamsUpdate =>
-                      val (auctionUpdated: Future[Answer[AuctionInfo]]) =
-                        (auctionHouseActor ? UpdateAuction(
-                          auctioneerId,
-                          auctionId,
-                          auctionRuleParamsUpdate))
-                          .mapTo[Answer[AuctionInfo]]
-                      completeAuctionInfoAnswer(auctionUpdated)
-                  }
-                },
-                get {
-                  val (auctionUpdated: Future[Answer[AuctionInfo]]) =
-                    (auctionHouseActor ? GetAuction(auctioneerId, auctionId))
-                      .mapTo[Answer[AuctionInfo]]
-                  completeAuctionInfoAnswer(auctionUpdated)
-                }
-              )
+              get {
+                val (auctions: Future[Answer[AuctionInfos]]) =
+                  (auctionHouseActor ? GetAuctioneersAuctions(auctioneerId))
+                    .mapTo[Answer[AuctionInfos]]
+                completeAuctionInfosAnswer(auctions)
+              }
             },
-            pathPrefix("bidder" / IntNumber) {
-              bidderId =>
+            pathPrefix("auction" / IntNumber) {
+              auctionId =>
                 concat(
                   pathEnd {
                     concat(
-                      put {
-                        val (auctionUpdated: Future[Answer[AuctionInfo]]) =
-                          (auctionHouseActor ? AddBidder(auctioneerId,
-                                                         auctionId,
-                                                         bidderId))
-                            .mapTo[Answer[AuctionInfo]]
-                        completeAuctionInfoAnswer(auctionUpdated)
-                      },
                       post {
-                        entity(as[BidParam]) { bidParam =>
-                          val bid = Bid(bidder = bidderId, price = bidParam.bid)
-                          val (auctionUpdated: Future[Answer[AuctionInfo]]) =
-                            (auctionHouseActor ? AddBid(auctioneerId,
-                                                        auctionId,
-                                                        bid))
+                        entity(as[AuctionRuleParams]) { auctionRuleParams =>
+                          val (auctionCreated: Future[Answer[AuctionInfo]]) =
+                            (auctionHouseActor ? CreateAuction(
+                              auctioneerId,
+                              auctionId,
+                              auctionRuleParams))
                               .mapTo[Answer[AuctionInfo]]
-                          completeAuctionInfoAnswer(auctionUpdated)
+                          completeAuctionInfoAnswer(auctionCreated)
                         }
                       },
+                      put {
+                        entity(as[AuctionRuleParamsUpdate]) {
+                          auctionRuleParamsUpdate =>
+                            val (auctionUpdated: Future[Answer[AuctionInfo]]) =
+                              (auctionHouseActor ? UpdateAuction(
+                                auctioneerId,
+                                auctionId,
+                                auctionRuleParamsUpdate))
+                                .mapTo[Answer[AuctionInfo]]
+                            completeAuctionInfoAnswer(auctionUpdated)
+                        }
+                      },
+                      get {
+                        val (auctionUpdated: Future[Answer[AuctionInfo]]) =
+                          (auctionHouseActor ? GetAuction(auctioneerId,
+                                                          auctionId))
+                            .mapTo[Answer[AuctionInfo]]
+                        completeAuctionInfoAnswer(auctionUpdated)
+                      }
                     )
+                  },
+                  pathPrefix("bidder" / IntNumber) {
+                    bidderId =>
+                      concat(
+                        pathEnd {
+                          concat(
+                            put {
+                              val (auctionUpdated: Future[
+                                Answer[AuctionInfo]]) =
+                                (auctionHouseActor ? AddBidder(auctioneerId,
+                                                               auctionId,
+                                                               bidderId))
+                                  .mapTo[Answer[AuctionInfo]]
+                              completeAuctionInfoAnswer(auctionUpdated)
+                            },
+                            post {
+                              entity(as[BidParam]) { bidParam =>
+                                val bid =
+                                  Bid(bidder = bidderId, price = bidParam.bid)
+                                val (auctionUpdated: Future[
+                                  Answer[AuctionInfo]]) =
+                                  (auctionHouseActor ? AddBid(auctioneerId,
+                                                              auctionId,
+                                                              bid))
+                                    .mapTo[Answer[AuctionInfo]]
+                                completeAuctionInfoAnswer(auctionUpdated)
+                              }
+                            },
+                          )
+                        }
+                      )
                   }
                 )
             }
@@ -163,6 +171,6 @@ trait AuctionHouseRoutes extends JsonSupport {
       }
     }
 
-  lazy val auctionHouseRoutes = slash ~ auctioneerRoutes ~ bidderRoutes
+  lazy val auctionHouseRoutes = auctioneerRoutes ~ bidderRoutes
 
 }
