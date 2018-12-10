@@ -4,7 +4,10 @@ import java.util.concurrent.TimeUnit
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, ReceiveTimeout}
 import akka.http.scaladsl.model.StatusCodes
-import com.ion.trials.akka.actors.Auction.{GetAuctionInfo, GetAuctionInfoAnswer}
+import com.ion.trials.akka.actors.AuctionActor.{
+  GetAuctionInfo,
+  GetAuctionInfoAnswer
+}
 import com.ion.trials.akka.auction.AuctionTypes._
 
 import scala.concurrent.duration.FiniteDuration

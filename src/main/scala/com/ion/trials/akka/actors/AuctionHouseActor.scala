@@ -2,7 +2,7 @@ package com.ion.trials.akka.actors
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, Timers}
 import akka.http.scaladsl.model.StatusCodes
-import com.ion.trials.akka.actors.Auction.{
+import com.ion.trials.akka.actors.AuctionActor.{
   GetMessage,
   OpennedMessage,
   PlannedMessage
@@ -163,9 +163,10 @@ class AuctionHouseActor extends Actor with ActorLogging with Timers {
     }
   }
 
-  private def forwardToActor(auctioneerId: AuctioneerId,
-                             auctionId: AuctionId,
-                             message: ActorRef => Auction.Message): Unit = {
+  private def forwardToActor(
+      auctioneerId: AuctioneerId,
+      auctionId: AuctionId,
+      message: ActorRef => AuctionActor.Message): Unit = {
     val auctioneer = getAuctioneer(auctioneerId)
     auctioneer.get(auctionId) match {
       case Some(actor) => {
@@ -190,9 +191,9 @@ class AuctionHouseActor extends Actor with ActorLogging with Timers {
     auctioneer.get(auctionId) match {
       case Some(_) => false
       case None =>
-        val auctionProps = Auction.props(auctioneerId = auctioneerId,
-                                         auctionId = auctionId,
-                                         rule = auctionRule)
+        val auctionProps = AuctionActor.props(auctioneerId = auctioneerId,
+                                              auctionId = auctionId,
+                                              rule = auctionRule)
         val res = context.actorOf(auctionProps)
         getAuctioneer(auctioneerId).add(auctionId, res)
         true
