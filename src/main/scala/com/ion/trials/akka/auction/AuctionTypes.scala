@@ -70,7 +70,7 @@ object AuctionTypes {
       AuctionDate(localDate.atZone(zoneId).toEpochSecond)
     } catch {
       case e: DateTimeParseException =>
-        throw new IllegalArgumentException(s"$date is an invalid date")
+        throw new IllegalArgumentException(s"'$date' is an invalid date")
     }
   }
 
