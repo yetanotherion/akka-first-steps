@@ -39,6 +39,22 @@ object Planned {
     )
   }
 
+  def datesUpdatedInAnswer(former: AuctionRule, answer: Answer[AuctionInfo]) = {
+    getSuccess(answer) match {
+      case Some(x) =>
+        if (datesUpdated(former, x.rule)) {
+          true
+        } else {
+          false
+        }
+      case None => false
+    }
+  }
+
+  private def datesUpdated(before: AuctionRule, after: AuctionRule) = {
+    before.startDate != after.startDate || before.endDate != after.endDate
+  }
+
   def validateAuctionRuleParams(rule: AuctionRuleParams) = {
     val paramsUpdate = new AuctionRuleParamsUpdate(
       startDate = Some(rule.startDate),
