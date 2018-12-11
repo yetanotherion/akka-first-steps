@@ -1,7 +1,7 @@
 package com.ion.trials.akka.actors
 
-import akka.actor.{Actor, ActorLogging, Props}
-import akka.http.scaladsl.model.StatusCodes
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import akka.http.scaladsl.model.{StatusCodes}
 import com.ion.trials.akka.auction.{AuctionTypes, Closed, Openned, Planned}
 import com.ion.trials.akka.auction.AuctionTypes._
 
@@ -28,6 +28,7 @@ object AuctionActor {
       extends Message
 
   final object GetMessage extends Message
+  final case class GetMessageFrom(actor: ActorRef) extends Message
 
   final object GetAuctionInfo extends Message
 
@@ -74,7 +75,16 @@ class AuctionActor(auctioneerId: AuctioneerId,
     case PlannedMessage(plannedMessage) => {
       state match {
         case PlannedState(planned) =>
-          sender() ! planned.receive(plannedMessage)
+          val former = planned.rule.copy()
+          val answer = planned.receive(plannedMessage)
+          if (Planned.datesUpdatedInAnswer(former, answer)) {
+            /* The state may have changed, send the message to update
+             * it before answering
+             */
+            self ! GetMessageFrom(sender())
+          } else {
+            sender() ! answer
+          }
         case OpennedState(_) | ClosedState(_) =>
           sender() ! messageNotSupportedAnswer
       }
@@ -91,19 +101,11 @@ class AuctionActor(auctioneerId: AuctioneerId,
     }
 
     case GetMessage => {
-      state match {
-        case PlannedState(planned) => {
-          sender() ! Answer(StatusCodes.OK,
-                            Left(Planned.toPlannedInfo(planned)))
-        }
-        case OpennedState(openned) => {
-          sender() ! Answer(StatusCodes.OK,
-                            Left(Openned.toOpennedInfo(openned)))
-        }
-        case ClosedState(closed) => {
-          sender() ! Answer(StatusCodes.OK, Left(Closed.toClosedInfo(closed)))
-        }
-      }
+      answerGetMessage(sender())
+    }
+
+    case GetMessageFrom(respondTo: ActorRef) => {
+      answerGetMessage(respondTo)
     }
 
     case GetAuctionInfo => {
@@ -138,6 +140,20 @@ class AuctionActor(auctioneerId: AuctioneerId,
                                            closed.bids,
                                            state = "closed")
         }
+      }
+    }
+  }
+
+  private def answerGetMessage(respondTo: ActorRef) = {
+    state match {
+      case PlannedState(planned) => {
+        respondTo ! Answer(StatusCodes.OK, Left(Planned.toPlannedInfo(planned)))
+      }
+      case OpennedState(openned) => {
+        respondTo ! Answer(StatusCodes.OK, Left(Openned.toOpennedInfo(openned)))
+      }
+      case ClosedState(closed) => {
+        respondTo ! Answer(StatusCodes.OK, Left(Closed.toClosedInfo(closed)))
       }
     }
   }

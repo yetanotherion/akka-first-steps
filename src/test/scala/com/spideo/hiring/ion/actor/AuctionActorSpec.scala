@@ -5,7 +5,7 @@ import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.model.StatusCodes
 import akka.testkit.{ImplicitSender, TestKit}
 import com.ion.trials.akka.actors.AuctionActor
-import com.ion.trials.akka.actors.AuctionActor.{GetMessage, PlannedMessage}
+import com.ion.trials.akka.actors.AuctionActor.{PlannedMessage}
 import com.ion.trials.akka.auction.AuctionTypes
 import com.ion.trials.akka.auction.AuctionTypes._
 import com.ion.trials.akka.routes.AuctionRuleParamsUpdate
@@ -73,17 +73,13 @@ class AuctionActorSpec
       val newAuctionDate = AuctionDate(currentTime - 1)
       val expected =
         auctionInfo.copy(rule = auctionRule.copy(startDate = newAuctionDate),
-                         state = "planned")
+                         currentPrice = Some(0),
+                         state = "openned")
       val startDate = AuctionTypes.fromAuctionDate(newAuctionDate)
       auction ! PlannedMessage(emptyUpdate.copy(startDate = Some(startDate)))
       expectMsg(500 millis, Answer(StatusCodes.OK, Left(expected)))
-      auction ! GetMessage
-
-      expectMsg(
-        500 millis,
-        Answer(StatusCodes.OK,
-               Left(expected.copy(state = "openned", currentPrice = Some(0)))))
     }
+
   }
 
 }

@@ -40,6 +40,13 @@ object AuctionTypes {
 
   final case class Answer[T](status: StatusCode, msg: Either[T, String])
 
+  def getSuccess[T](answer: Answer[T]): Option[T] = {
+    answer.msg match {
+      case Right(_) => None
+      case Left(x)  => Some(x)
+    }
+  }
+
   /* API <-> auctionHouse */
   final case class BidsOfBidderInOneAuction(bidder: Bidder,
                                             state: String,
