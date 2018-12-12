@@ -41,11 +41,24 @@ object AuctionActor {
 class AuctionActor(auctioneerId: AuctioneerId,
                    auctionId: AuctionId,
                    rule: AuctionRule)
+    extends AuctionActorBase(auctioneerId = auctioneerId,
+                             auctionId = auctionId,
+                             rule = rule)
+    with SystemTime
+
+trait SystemTime {
+  def getCurrentTime() = AuctionActor.getCurrentTime
+}
+
+abstract class AuctionActorBase(auctioneerId: AuctioneerId,
+                                auctionId: AuctionId,
+                                rule: AuctionRule)
     extends Actor
     with ActorLogging {
 
   import AuctionActor._
 
+  def getCurrentTime(): Long
   private var state: State = PlannedState(
     new Planned(rule = rule,
                 auctioneerId = auctioneerId,
