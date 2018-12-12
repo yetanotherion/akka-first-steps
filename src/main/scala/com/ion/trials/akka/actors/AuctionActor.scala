@@ -34,9 +34,7 @@ object AuctionActor {
 
   final case class GetAuctionInfoAnswer(answer: AuctionInfo)
 
-  def getCurrentTime(): Long = {
-    System.currentTimeMillis / 1000
-  }
+  def getCurrentTime() = System.currentTimeMillis()
 
 }
 
@@ -208,11 +206,11 @@ class AuctionActor(auctioneerId: AuctioneerId,
   }
 
   private def didEnd(currentTime: Long, rule: AuctionRule): Boolean = {
-    currentTime >= rule.endDate.epochInSec
+    currentTime >= rule.endDate.epochInMilliSec
   }
 
   private def didStart(currentTime: Long, rule: AuctionRule): Boolean = {
-    currentTime >= rule.startDate.epochInSec
+    currentTime >= rule.startDate.epochInMilliSec
   }
 
 }

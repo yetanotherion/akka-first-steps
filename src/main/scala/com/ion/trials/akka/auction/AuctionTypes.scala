@@ -6,7 +6,7 @@ import java.time.{Instant, LocalDateTime, ZoneId, ZonedDateTime}
 import akka.http.scaladsl.model.StatusCode
 
 object AuctionTypes {
-  final case class AuctionDate(epochInSec: Long)
+  final case class AuctionDate(epochInMilliSec: Long)
 
   type Item = Int
   type Price = Int
@@ -67,7 +67,7 @@ object AuctionTypes {
   def toAuctionDate(date: String): AuctionDate = {
     try {
       val localDate = LocalDateTime.parse(date, dateFormat)
-      AuctionDate(localDate.atZone(zoneId).toEpochSecond)
+      AuctionDate(localDate.atZone(zoneId).toInstant.toEpochMilli)
     } catch {
       case e: DateTimeParseException =>
         throw new IllegalArgumentException(s"'$date' is an invalid date")
@@ -76,7 +76,7 @@ object AuctionTypes {
 
   def fromAuctionDate(auctionDate: AuctionDate): String = {
     ZonedDateTime
-      .ofInstant(Instant.ofEpochSecond(auctionDate.epochInSec), zoneId)
+      .ofInstant(Instant.ofEpochMilli(auctionDate.epochInMilliSec), zoneId)
       .format(dateFormat)
   }
 
