@@ -24,44 +24,6 @@ class AuctionActorSpec
     TestKit.shutdownActorSystem(system)
   }
 
-  private val auctioneerId = 1
-  private val auctionId = 1
-  private val currentTime = AuctionActor.getCurrentTime()
-
-  private val startTime = currentTime + 10 * 1000
-  private val endTime = currentTime + 100 * 1000
-
-  private val auctionRule = AuctionRule(startDate = AuctionDate(startTime),
-                                        endDate = AuctionDate(endTime),
-                                        item = 1,
-                                        initialPrice = 0,
-                                        increment = AuctionTypes.toIncrement(1))
-
-  private val auctionInfo = AuctionInfo(
-    rule = auctionRule,
-    state = "planned",
-    bidders = List(),
-    bids = List(),
-    winner = None,
-    currentPrice = None,
-    auctionId = auctionId,
-    auctioneerId = auctioneerId
-  )
-
-  private val emptyUpdate = AuctionRuleParamsUpdate(startDate = None,
-                                                    endDate = None,
-                                                    item = None,
-                                                    initialPrice = None,
-                                                    increment = None)
-
-  private def createAuction(): ActorRef = {
-    system
-      .actorOf(
-        AuctionActor.props(auctioneerId = auctioneerId,
-                           auctionId = auctionId,
-                           rule = auctionRule))
-  }
-
   "An Auction" should {
     "update its item" in {
       val auction = createAuction()
@@ -116,6 +78,44 @@ class AuctionActorSpec
 
     }
 
+  }
+
+  private val auctioneerId = 1
+  private val auctionId = 1
+  private val currentTime = AuctionActor.getCurrentTime()
+
+  private val startTime = currentTime + 10 * 1000
+  private val endTime = currentTime + 100 * 1000
+
+  private val auctionRule = AuctionRule(startDate = AuctionDate(startTime),
+                                        endDate = AuctionDate(endTime),
+                                        item = 1,
+                                        initialPrice = 0,
+                                        increment = AuctionTypes.toIncrement(1))
+
+  private val auctionInfo = AuctionInfo(
+    rule = auctionRule,
+    state = "planned",
+    bidders = List(),
+    bids = List(),
+    winner = None,
+    currentPrice = None,
+    auctionId = auctionId,
+    auctioneerId = auctioneerId
+  )
+
+  private val emptyUpdate = AuctionRuleParamsUpdate(startDate = None,
+                                                    endDate = None,
+                                                    item = None,
+                                                    initialPrice = None,
+                                                    increment = None)
+
+  private def createAuction(): ActorRef = {
+    system
+      .actorOf(
+        AuctionActor.props(auctioneerId = auctioneerId,
+                           auctionId = auctionId,
+                           rule = auctionRule))
   }
 
 }
