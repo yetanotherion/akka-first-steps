@@ -177,7 +177,7 @@ object Planned {
 
   private def validateNewStartDate(newStartDate: AuctionDate,
                                    rule: AuctionRule): Option[String] = {
-    if (newStartDate.epochInSec > rule.endDate.epochInSec) {
+    if (newStartDate.epochInMilliSec > rule.endDate.epochInMilliSec) {
       Some(
         s"newStartDate: ${fromAuctionDate(newStartDate)} > endDate: ${fromAuctionDate(rule.endDate)}")
     } else {
@@ -187,7 +187,7 @@ object Planned {
 
   private def validateNewEndDate(newEndDate: AuctionDate,
                                  rule: AuctionRule): Option[String] = {
-    if (newEndDate.epochInSec < rule.startDate.epochInSec) {
+    if (newEndDate.epochInMilliSec < rule.startDate.epochInMilliSec) {
       Some(
         s"newEndDate: ${fromAuctionDate(newEndDate)} < startDate: ${fromAuctionDate(rule.startDate)}")
     } else {

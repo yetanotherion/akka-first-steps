@@ -28,8 +28,8 @@ class AuctionActorSpec
   private val auctionId = 1
   private val currentTime = AuctionActor.getCurrentTime()
 
-  private val startTime = currentTime + 10
-  private val endTime = currentTime + 100
+  private val startTime = currentTime + 10 * 1000
+  private val endTime = currentTime + 100 * 1000
 
   private val auctionRule = AuctionRule(startDate = AuctionDate(startTime),
                                         endDate = AuctionDate(endTime),
