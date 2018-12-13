@@ -1,7 +1,7 @@
 package com.spideo.hiring.ion.actor
 
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-import akka.actor.{ActorSystem}
+import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.model.StatusCodes
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
 import com.ion.trials.akka.actors.AuctionActor.{GetMessage, PlannedMessage}
@@ -23,6 +23,18 @@ class AuctionActorSpec
     TestKit.shutdownActorSystem(system)
   }
 
+  override def withFixture(test: NoArgTest) = {
+    try super.withFixture(test)
+    finally {
+      auction match {
+        case None => ()
+        case Some(a) => {
+          system.stop(a)
+        }
+      }
+    }
+  }
+
   "An Auction" should {
     "update its item" in {
       val auction = createAuction()
@@ -33,7 +45,7 @@ class AuctionActorSpec
 
     "update its startDate and become openned" in {
       val auction = createAuction()
-      val newAuctionDate = AuctionDate(currentTime - 1)
+      val newAuctionDate = AuctionDate(currentTime)
       val expected =
         auctionInfo.copy(rule = auctionRule.copy(startDate = newAuctionDate),
                          currentPrice = Some(0),
@@ -83,13 +95,11 @@ class AuctionActorSpec
       val newRule = auctionRule.copy(startDate = AuctionDate(newStartTime))
       val newInfo = auctionInfo.copy(rule = newRule)
       val auction = createAuction(newRule)
-      val actor = auction.underlyingActor
       val expectedAnswer = Answer(StatusCodes.OK, Left(newInfo))
 
       auction ! GetMessage
       expectMsg(500 millis, expectedAnswer)
-      actor.advanceCurrentTime(milliSecAfterCurrTime)
-
+      auction.underlyingActor.time.advanceCurrentTime(milliSecAfterCurrTime)
       auction ! GetMessage
       val newExpectedAnswer =
         Answer(StatusCodes.OK,
@@ -100,21 +110,20 @@ class AuctionActorSpec
 
     "update to closed on the correct time" in {
       val milliSecAfterCurrTime = 2
-      val newStartTime = currentTime - 1
-      val newEndTime = currentTime + milliSecAfterCurrTime
+      val newStartTime = currentTime
+      val newEndTime = newStartTime + milliSecAfterCurrTime
       val newRule = auctionRule.copy(startDate = AuctionDate(newStartTime),
                                      endDate = AuctionDate(newEndTime))
       val newInfo = auctionInfo.copy(rule = newRule,
                                      state = "openned",
                                      currentPrice = Some(0))
       val auction = createAuction(newRule)
-      val actor = auction.underlyingActor
       val expectedAnswer = Answer(StatusCodes.OK, Left(newInfo))
-
       auction ! GetMessage
       expectMsg(500 millis, expectedAnswer)
 
-      actor.advanceCurrentTime(milliSecAfterCurrTime)
+      auction.underlyingActor.time.advanceCurrentTime(milliSecAfterCurrTime)
+
       auction ! GetMessage
       val newExpectedAnswer =
         Answer(StatusCodes.OK,
@@ -137,6 +146,8 @@ class AuctionActorSpec
                                         item = 1,
                                         initialPrice = 0,
                                         increment = AuctionTypes.toIncrement(1))
+
+  private var auction: Option[ActorRef] = None
 
   private val auctionInfo = AuctionInfo(
     rule = auctionRule,
@@ -161,10 +172,14 @@ class AuctionActorSpec
 
   private def createAuction(
       rule: AuctionRule): TestActorRef[AuctionActorInTest] = {
+    val time = new TestingTime(currentTime)
     val res = TestActorRef[AuctionActorInTest](
       AuctionActorInTest
-        .props(auctioneerId = auctioneerId, auctionId = auctionId, rule = rule))
-    res.underlyingActor.setCurrentTime(currentTime)
+        .props(time,
+               auctioneerId = auctioneerId,
+               auctionId = auctionId,
+               rule = rule))
+    auction = Some(res)
     res
   }
 

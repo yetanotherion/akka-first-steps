@@ -36,29 +36,43 @@ object AuctionActor {
 
   def getCurrentTime() = System.currentTimeMillis()
 
+  abstract class Time {
+    def getCurrentTime(): Long
+    def setCurrentTime(currTime: Long): Unit
+    def advanceCurrentTime(shift: Long): Unit
+  }
+
+  final object SystemTime extends AuctionActor.Time {
+    def getCurrentTime() = AuctionActor.getCurrentTime()
+    def setCurrentTime(currTime: Long) = {
+      throw new RuntimeException("setCurrentTime not supported")
+    }
+    def advanceCurrentTime(shift: Long) = {
+      throw new RuntimeException("advanceCurrentTime not supported")
+    }
+  }
+
 }
 
 class AuctionActor(auctioneerId: AuctioneerId,
                    auctionId: AuctionId,
                    rule: AuctionRule)
-    extends AuctionActorBase(auctioneerId = auctioneerId,
+    extends AuctionActorBase(time = AuctionActor.SystemTime,
+                             auctioneerId = auctioneerId,
                              auctionId = auctionId,
                              rule = rule)
-    with SystemTime
 
-trait SystemTime {
-  def getCurrentTime() = AuctionActor.getCurrentTime
-}
-
-abstract class AuctionActorBase(auctioneerId: AuctioneerId,
-                                auctionId: AuctionId,
-                                rule: AuctionRule)
+class AuctionActorBase(val time: AuctionActor.Time,
+                       auctioneerId: AuctioneerId,
+                       auctionId: AuctionId,
+                       rule: AuctionRule)
     extends Actor
     with ActorLogging {
 
   import AuctionActor._
 
-  def getCurrentTime(): Long
+  def getCurrentTime() = time.getCurrentTime()
+
   private var state: State = PlannedState(
     new Planned(rule = rule,
                 auctioneerId = auctioneerId,

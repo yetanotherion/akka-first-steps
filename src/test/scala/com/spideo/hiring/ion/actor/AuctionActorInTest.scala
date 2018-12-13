@@ -1,7 +1,7 @@
 package com.spideo.hiring.ion.actor
 
 import akka.actor.Props
-import com.ion.trials.akka.actors.{AuctionActorBase}
+import com.ion.trials.akka.actors.{AuctionActor, AuctionActorBase}
 import com.ion.trials.akka.auction.AuctionTypes.{
   AuctionId,
   AuctionRule,
@@ -9,22 +9,23 @@ import com.ion.trials.akka.auction.AuctionTypes.{
 }
 
 object AuctionActorInTest {
-  def props(auctioneerId: AuctioneerId,
+  def props(time: TestingTime,
+            auctioneerId: AuctioneerId,
             auctionId: AuctionId,
             rule: AuctionRule): Props =
-    Props(new AuctionActorInTest(auctioneerId, auctionId, rule))
+    Props(new AuctionActorInTest(time, auctioneerId, auctionId, rule))
 }
 
-class AuctionActorInTest(auctioneerId: AuctioneerId,
+class AuctionActorInTest(time: TestingTime,
+                         auctioneerId: AuctioneerId,
                          auctionId: AuctionId,
                          rule: AuctionRule)
-    extends AuctionActorBase(auctioneerId = auctioneerId,
+    extends AuctionActorBase(time = time,
+                             auctioneerId = auctioneerId,
                              auctionId = auctionId,
                              rule = rule)
-    with TestingTime
 
-trait TestingTime {
-  var currentTime = 0L
+class TestingTime(var currentTime: Long) extends AuctionActor.Time {
 
   def getCurrentTime() = currentTime
 
