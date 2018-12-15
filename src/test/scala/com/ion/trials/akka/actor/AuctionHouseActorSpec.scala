@@ -123,6 +123,15 @@ class AuctionHouseActorSpec
       )
     }
 
+    "return no auctions on a non existing bidder" in {
+      val auctionHouse = createTwoAuctionsBidInOneAndExpectCorrectMessages()
+      auctionHouse ! GetBidsOfBidderRequest(2)
+      expectMsg(
+        expectedMsgTimeout,
+        Answer(StatusCodes.OK, Left(BidsOfBidder(List())))
+      )
+    }
+
   }
 
   private var auctionHouse: Option[ActorRef] = None
