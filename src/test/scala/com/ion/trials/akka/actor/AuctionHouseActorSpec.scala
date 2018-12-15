@@ -4,18 +4,13 @@ import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.model.StatusCodes
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
 import com.ion.trials.akka.actors.AuctionActor
-import com.ion.trials.akka.actors.AuctionHouseActor.{
-  AddBid,
-  AddBidder,
-  CreateAuction,
-  GetAuctions
-}
+import com.ion.trials.akka.actors.AuctionHouseActor._
 import com.ion.trials.akka.actors.GatherAuctionsActor.AuctionInfos
 import com.ion.trials.akka.actors.GatherBidsOfBidderActor.BidsOfBidder
 import com.ion.trials.akka.auction.AuctionTypes
 import com.ion.trials.akka.auction.AuctionTypes._
 import com.ion.trials.akka.auction.Planned.plannedStr
-import com.ion.trials.akka.routes.AuctionRuleParams
+import com.ion.trials.akka.routes.{AuctionRuleParams, AuctionRuleParamsUpdate}
 import com.ion.trials.akka.util.TestingTime
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
@@ -57,6 +52,36 @@ class AuctionHouseActorSpec
       createAuctionsAndExpectCorrectMessages(List(firstAuctionKey))
     }
 
+    "update an auction" in {
+      val auctionHouse =
+        createAuctionsAndExpectCorrectMessages(List(firstAuctionKey))
+      auctionHouse ! UpdateAuction(
+        auctioneerId = firstAuctionKey.auctioneerId,
+        auctionId = firstAuctionKey.auctionId,
+        auctionRule = AuctionRuleParamsUpdate(initialPrice = Some(2),
+                                              startDate = None,
+                                              endDate = None,
+                                              item = None,
+                                              increment = None)
+      )
+      val initialRule = createExpectedAuctionInfo(firstAuctionKey).rule
+      expectMsg(expectedMsgTimeout,
+                Answer(StatusCodes.OK,
+                       Left(
+                         createExpectedAuctionInfo(firstAuctionKey).copy(
+                           rule = initialRule.copy(initialPrice = 2)))))
+    }
+
+    "get a created auction" in {
+      val auctionHouse =
+        createAuctionsAndExpectCorrectMessages(List(firstAuctionKey))
+      auctionHouse ! GetAuction(auctioneerId = firstAuctionKey.auctioneerId,
+                                auctionId = firstAuctionKey.auctionId)
+      expectMsg(expectedMsgTimeout,
+                Answer(StatusCodes.OK,
+                       Left(createExpectedAuctionInfo(firstAuctionKey))))
+    }
+
     "refuse to recreate an auction" in {
       val auctionHouse =
         createAuctionsAndExpectCorrectMessages(List(firstAuctionKey))
@@ -71,7 +96,7 @@ class AuctionHouseActorSpec
     }
   }
 
-  "An AuctionHouse communicating with multiple auctions" should {
+  "An AuctionHouse with multiple auctions" should {
     "create two auctions and bid in one" in {
       createTwoAuctionsBidInOneAndExpectCorrectMessages()
     }
@@ -96,6 +121,27 @@ class AuctionHouseActorSpec
                 currentPrice = Some(0)
               )
             )))
+        )
+      )
+    }
+
+    "gather auctions of an auctioneer after two are created" in {
+      val auctionHouse = createTwoAuctionsBidInOneAndExpectCorrectMessages()
+      auctionHouse ! GetAuctioneersAuctions(1)
+      expectMsg(
+        expectedMsgTimeout,
+        Answer(
+          StatusCodes.OK,
+          Left(
+            AuctionInfos(
+              List(
+                createExpectedAuctionInfo(firstAuctionKey).copy(
+                  state = AuctionActor.openned,
+                  bids = List(Bid(bidder = 1, price = 1)),
+                  bidders = List(1),
+                  currentPrice = Some(1)
+                )
+              )))
         )
       )
     }
