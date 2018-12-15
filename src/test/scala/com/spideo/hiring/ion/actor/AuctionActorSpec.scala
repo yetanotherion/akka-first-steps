@@ -4,6 +4,7 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.model.StatusCodes
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
+import com.ion.trials.akka.actors.AuctionActor
 import com.ion.trials.akka.actors.AuctionActor.{
   GetMessage,
   OpennedMessage,
@@ -54,7 +55,7 @@ class AuctionActorSpec
       val expected =
         auctionInfo.copy(rule = auctionRule.copy(startDate = newAuctionDate),
                          currentPrice = Some(0),
-                         state = "openned")
+                         state = AuctionActor.openned)
       val startDate = AuctionTypes.fromAuctionDate(newAuctionDate)
       auction ! PlannedMessage(emptyUpdate.copy(startDate = Some(startDate)))
       expectOkAuctionInfo(expected)
@@ -105,7 +106,7 @@ class AuctionActorSpec
       auction.underlyingActor.time.advanceCurrentTime(milliSecAfterCurrTime)
       auction ! GetMessage
       expectOkAuctionInfo(
-        newInfo.copy(state = "openned", currentPrice = Some(0)))
+        newInfo.copy(state = AuctionActor.openned, currentPrice = Some(0)))
     }
   }
 
@@ -118,7 +119,7 @@ class AuctionActorSpec
       val newRule = auctionRule.copy(startDate = AuctionDate(newStartTime),
                                      endDate = AuctionDate(newEndTime))
       val newInfo = auctionInfo.copy(rule = newRule,
-                                     state = "openned",
+                                     state = AuctionActor.openned,
                                      currentPrice = Some(0))
       val auction = createAuction(newRule)
       auction ! GetMessage
@@ -127,7 +128,8 @@ class AuctionActorSpec
       auction.underlyingActor.time.advanceCurrentTime(milliSecAfterCurrTime)
 
       auction ! GetMessage
-      expectOkAuctionInfo(newInfo.copy(state = "closed", currentPrice = None))
+      expectOkAuctionInfo(
+        newInfo.copy(state = AuctionActor.closed, currentPrice = None))
     }
 
     "accept a bidder" in {
@@ -192,7 +194,7 @@ class AuctionActorSpec
 
       auction.underlyingActor.time.advanceCurrentTime(endTime - currentTime)
       auction ! GetMessage
-      newExpectedAuction = newExpectedAuction.copy(state = "closed",
+      newExpectedAuction = newExpectedAuction.copy(state = AuctionActor.closed,
                                                    winner = Some(sndBid),
                                                    currentPrice = None)
       expectOkAuctionInfo(newExpectedAuction)
@@ -208,8 +210,10 @@ class AuctionActorSpec
       auction ! OpennedMessage(NewBid(Bid(bidder = 1, price = 2)))
       expectMsg(
         expectedMsgTimeout,
-        Answer(StatusCodes.BadRequest,
-               Right(Error("Message not supported in current state 'closed'"))))
+        Answer(
+          StatusCodes.BadRequest,
+          Right(Error(
+            s"Message not supported in current state '${AuctionActor.closed}'"))))
     }
   }
 
@@ -230,7 +234,7 @@ class AuctionActorSpec
 
   private val auctionInfo = AuctionInfo(
     rule = auctionRule,
-    state = "planned",
+    state = AuctionActor.planned,
     bidders = List(),
     bids = List(),
     winner = None,
@@ -253,7 +257,7 @@ class AuctionActorSpec
     val expectedAuctionInfo =
       auctionInfo.copy(rule = auctionRule.copy(startDate = newAuctionDate),
                        currentPrice = Some(0),
-                       state = "openned")
+                       state = AuctionActor.openned)
     val startDate = AuctionTypes.fromAuctionDate(newAuctionDate)
     auction ! PlannedMessage(emptyUpdate.copy(startDate = Some(startDate)))
     expectOkAuctionInfo(expectedAuctionInfo)

@@ -36,6 +36,10 @@ object AuctionActor {
 
   def getCurrentTime() = System.currentTimeMillis()
 
+  val planned = Planned.plannedStr
+  val closed = Closed.closedStr
+  val openned = Openned.opennedStr
+
   abstract class Time {
     def getCurrentTime(): Long
     def setCurrentTime(currTime: Long): Unit
@@ -157,13 +161,13 @@ class AuctionActorBase(val time: AuctionActor.Time,
           sender() ! answerGetBidsOfBidder(bidder,
                                            openned.bidders.toSeq,
                                            openned.bids,
-                                           state = "openned")
+                                           state = AuctionActor.openned)
         }
         case ClosedState(closed) => {
           sender() ! answerGetBidsOfBidder(bidder,
                                            closed.bidders,
                                            closed.bids,
-                                           state = "closed")
+                                           state = AuctionActor.closed)
         }
       }
     }
@@ -191,9 +195,9 @@ class AuctionActorBase(val time: AuctionActor.Time,
 
   private def stateToString() = {
     state match {
-      case PlannedState(_) => "planned"
-      case OpennedState(_) => "openned"
-      case ClosedState(_)  => "closed"
+      case PlannedState(_) => planned
+      case OpennedState(_) => openned
+      case ClosedState(_)  => closed
     }
   }
 

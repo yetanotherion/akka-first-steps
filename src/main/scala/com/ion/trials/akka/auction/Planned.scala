@@ -26,10 +26,12 @@ object Planned {
 
   type PlannedMessageAnswer = Answer[AuctionInfo]
 
+  val plannedStr = "planned"
+
   def toPlannedInfo(planned: Planned): AuctionInfo = {
     AuctionInfo(
       rule = planned.rule,
-      state = "planned",
+      state = plannedStr,
       bidders = List(),
       bids = List(),
       winner = None,

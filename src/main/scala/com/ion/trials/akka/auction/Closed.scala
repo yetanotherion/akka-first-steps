@@ -3,10 +3,12 @@ package com.ion.trials.akka.auction
 import AuctionTypes.AuctionInfo
 
 object Closed {
+  val closedStr = "closed"
+
   def toClosedInfo(closed: Closed): AuctionInfo = {
     AuctionInfo(
       rule = closed.rule,
-      state = "closed",
+      state = closedStr,
       bidders = closed.bidders,
       bids = closed.bids,
       winner = closed.winner,

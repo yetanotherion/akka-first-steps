@@ -11,10 +11,12 @@ object Openned {
 
   final case class NewBid(newBid: Bid) extends Message
 
+  val opennedStr = "openned"
+
   def toOpennedInfo(openned: Openned): AuctionInfo = {
     AuctionInfo(
       rule = openned.rule,
-      state = "openned",
+      state = opennedStr,
       bidders = openned.bidders.toList,
       bids = openned.bids,
       winner = None,
