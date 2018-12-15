@@ -35,8 +35,8 @@ class AuctionHouseActorSpec
     }
   }
 
-  "An AuctionHouse state" should {
-    "update its item" in {
+  "An AuctionHouse" should {
+    "not have any auction initially" in {
       val auctionHouse = createAuctionHouse()
       auctionHouse ! GetAuctions
       expectMsg(expectedMsgTimeout,

@@ -62,7 +62,7 @@ class AuctionActorSpec
       expectOkAuctionInfo(expected)
     }
 
-    "filters an invalid startDate" in {
+    "filter an invalid startDate" in {
       val auction = createAuction()
       val newAuctionDate = AuctionDate(endTime + 1)
       val startDate = AuctionTypes.fromAuctionDate(newAuctionDate)
@@ -150,7 +150,7 @@ class AuctionActorSpec
         newExpectedAuction.copy(bids = List(bid), currentPrice = Some(3)))
     }
 
-    "refuse a bid from a valid bidder" in {
+    "refuse a bid from an valid bidder" in {
       val (auction, expectedAuctionInfo) = createOpennedAuction()
       auction ! OpennedMessage(NewBidder(1))
       val newExpectedAuction = expectedAuctionInfo.copy(bidders = List(1))
@@ -163,7 +163,7 @@ class AuctionActorSpec
                Right(Error("bidder: 1 does not respect increment rules"))))
     }
 
-    "refuse a bid from an bidder that did not join the auction" in {
+    "refuse a bid from a bidder that did not join the auction" in {
       val (auction, expectedAuctionInfo) = createOpennedAuction()
       val bid = Bid(bidder = 1, price = 0)
       auction ! OpennedMessage(NewBid(bid))
@@ -172,7 +172,7 @@ class AuctionActorSpec
                        Right(Error("1 did not join the auction yet"))))
     }
 
-    "accept a bid from two bidders and close to the correct winner" in {
+    "accept a bid from two bidders and close with the correct winner" in {
       val (auction, expectedAuctionInfo) = createOpennedAuction()
       auction ! OpennedMessage(NewBidder(1))
       var newExpectedAuction = expectedAuctionInfo.copy(bidders = List(1))
