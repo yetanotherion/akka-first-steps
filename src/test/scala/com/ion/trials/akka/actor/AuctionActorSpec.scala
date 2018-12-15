@@ -10,11 +10,11 @@ import com.ion.trials.akka.actors.AuctionActor.{
   OpennedMessage,
   PlannedMessage
 }
-
 import com.ion.trials.akka.auction.AuctionTypes
 import com.ion.trials.akka.auction.AuctionTypes._
 import com.ion.trials.akka.auction.Openned.{NewBid, NewBidder}
 import com.ion.trials.akka.routes.AuctionRuleParamsUpdate
+import com.ion.trials.akka.util.TestingTime
 
 import scala.concurrent.duration._
 import scala.language.postfixOps

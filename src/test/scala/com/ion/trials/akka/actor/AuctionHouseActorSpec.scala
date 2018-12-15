@@ -2,11 +2,11 @@ package com.ion.trials.akka.actor
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.model.StatusCodes
-import akka.testkit.{ImplicitSender, TestKit}
-import com.ion.trials.akka.actors.AuctionHouseActor
+import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
 import com.ion.trials.akka.actors.AuctionHouseActor.GetAuctions
 import com.ion.trials.akka.actors.GatherAuctionsActor.AuctionInfos
 import com.ion.trials.akka.auction.AuctionTypes.Answer
+import com.ion.trials.akka.util.TestingTime
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
@@ -46,8 +46,14 @@ class AuctionHouseActorSpec
 
   private var auctionHouse: Option[ActorRef] = None
   private val expectedMsgTimeout = 500 millis
+  private val currentTime = 10
 
-  private def createAuctionHouse(): ActorRef = {
-    system.actorOf(AuctionHouseActor.props())
+  private def createAuctionHouse(): TestActorRef[AuctionHouseActorInTest] = {
+    val time = new TestingTime(currentTime)
+    val res = TestActorRef[AuctionHouseActorInTest](
+      AuctionHouseActorInTest
+        .props(time))
+    auctionHouse = Some(res)
+    res
   }
 }

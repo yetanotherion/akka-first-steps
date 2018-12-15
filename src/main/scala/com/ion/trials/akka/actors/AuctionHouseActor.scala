@@ -18,7 +18,12 @@ import com.ion.trials.akka.actors.GatherAuctionsActor.{
 }
 import com.ion.trials.akka.auction.AuctionTypes._
 import com.ion.trials.akka.auction.Openned.{NewBid, NewBidder}
-import com.ion.trials.akka.auction.{Auctioneer, BiddersToAuctions, Planned}
+import com.ion.trials.akka.auction.{
+  AuctionTime,
+  Auctioneer,
+  BiddersToAuctions,
+  Planned
+}
 import com.ion.trials.akka.routes.{AuctionRuleParams, AuctionRuleParamsUpdate}
 
 object AuctionHouseActor {
@@ -48,7 +53,13 @@ object AuctionHouseActor {
 
 }
 
-class AuctionHouseActor extends Actor with ActorLogging with Timers {
+class AuctionHouseActor
+    extends AuctionHouseActorBase(time = AuctionTime.SystemTime)
+
+class AuctionHouseActorBase(time: AuctionTime.Time)
+    extends Actor
+    with ActorLogging
+    with Timers {
 
   import AuctionHouseActor._
 
@@ -193,7 +204,8 @@ class AuctionHouseActor extends Actor with ActorLogging with Timers {
     auctioneer.get(auctionId) match {
       case Some(_) => false
       case None =>
-        val auctionProps = AuctionActor.props(auctioneerId = auctioneerId,
+        val auctionProps = AuctionActor.props(time = time,
+                                              auctioneerId = auctioneerId,
                                               auctionId = auctionId,
                                               rule = auctionRule)
         val res = context.actorOf(auctionProps)

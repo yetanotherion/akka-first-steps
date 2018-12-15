@@ -20,10 +20,11 @@ final case class OpennedState(onGoingAuction: Openned) extends State
 final case class ClosedState(endedAuction: Closed) extends State
 
 object AuctionActor {
-  def props(auctioneerId: AuctioneerId,
+  def props(time: AuctionTime.Time,
+            auctioneerId: AuctioneerId,
             auctionId: AuctionId,
             rule: AuctionRule): Props =
-    Props(new AuctionActor(auctioneerId, auctionId, rule))
+    Props(new AuctionActor(time, auctioneerId, auctionId, rule))
 
   sealed abstract class Message
 
@@ -46,18 +47,10 @@ object AuctionActor {
 
 }
 
-class AuctionActor(auctioneerId: AuctioneerId,
+class AuctionActor(val time: AuctionTime.Time,
+                   auctioneerId: AuctioneerId,
                    auctionId: AuctionId,
                    rule: AuctionRule)
-    extends AuctionActorBase(time = AuctionTime.SystemTime,
-                             auctioneerId = auctioneerId,
-                             auctionId = auctionId,
-                             rule = rule)
-
-class AuctionActorBase(val time: AuctionTime.Time,
-                       auctioneerId: AuctioneerId,
-                       auctionId: AuctionId,
-                       rule: AuctionRule)
     extends Actor
     with ActorLogging {
 
