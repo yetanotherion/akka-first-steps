@@ -7,22 +7,18 @@ import com.ion.trials.akka.actors.AuctionActor
 import com.ion.trials.akka.actors.AuctionHouseActor._
 import com.ion.trials.akka.actors.GatherAuctionsActor.AuctionInfos
 import com.ion.trials.akka.actors.GatherBidsOfBidderActor.BidsOfBidder
-import com.ion.trials.akka.auction.AuctionTypes
 import com.ion.trials.akka.auction.AuctionTypes._
-import com.ion.trials.akka.auction.Planned.plannedStr
-import com.ion.trials.akka.routes.{AuctionRuleParams, AuctionRuleParamsUpdate}
-import com.ion.trials.akka.util.TestingTime
+import com.ion.trials.akka.routes.{AuctionRuleParamsUpdate}
+import com.ion.trials.akka.util.{AuctionTestData, TestingTime}
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-
-import scala.concurrent.duration._
-import scala.language.postfixOps
 
 class AuctionHouseActorSpec
     extends TestKit(ActorSystem("AkkaAuctionHouseTest"))
     with Matchers
     with WordSpecLike
     with ImplicitSender
-    with BeforeAndAfterAll {
+    with BeforeAndAfterAll
+    with AuctionTestData {
 
   override def afterAll: Unit = {
     TestKit.shutdownActorSystem(system)
@@ -181,10 +177,6 @@ class AuctionHouseActorSpec
   }
 
   private var auctionHouse: Option[ActorRef] = None
-  private val expectedMsgTimeout = 500 millis
-  private val currentTime = 10
-  private val startTime = currentTime + 2
-  private val endTime = startTime + 1
 
   private def createTwoAuctionsBidInOneAndExpectCorrectMessages()
     : TestActorRef[AuctionHouseActorInTest] = {
@@ -231,36 +223,6 @@ class AuctionHouseActorSpec
     }
     auctionHouse
   }
-
-  private def createExpectedAuctionInfo(key: AuctionKey): AuctionInfo = {
-    AuctionInfo(rule = auctionRule,
-                state = plannedStr,
-                bidders = List(),
-                bids = List(),
-                winner = None,
-                currentPrice = None,
-                auctionId = key.auctionId,
-                auctioneerId = key.auctioneerId)
-  }
-
-  private val firstAuctionKey = AuctionKey(auctioneerId = 1, auctionId = 0)
-  private val sndAuctionKey = AuctionKey(auctioneerId = 2, auctionId = 0)
-
-  private val auctionRuleParams = AuctionRuleParams(
-    startDate = AuctionTypes.fromAuctionDate(AuctionDate(startTime)),
-    endDate = AuctionTypes.fromAuctionDate(AuctionDate(endTime)),
-    item = 1,
-    initialPrice = 0,
-    increment = 1
-  )
-
-  private val auctionRule = AuctionRule(
-    startDate = AuctionDate(startTime),
-    endDate = AuctionDate(endTime),
-    item = 1,
-    initialPrice = 0,
-    increment = Increment(1)
-  )
 
   private def createAuctionHouse(): TestActorRef[AuctionHouseActorInTest] = {
     val time = new TestingTime(currentTime)

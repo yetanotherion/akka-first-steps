@@ -13,18 +13,15 @@ import com.ion.trials.akka.actors.AuctionActor.{
 import com.ion.trials.akka.auction.AuctionTypes
 import com.ion.trials.akka.auction.AuctionTypes._
 import com.ion.trials.akka.auction.Openned.{NewBid, NewBidder}
-import com.ion.trials.akka.routes.AuctionRuleParamsUpdate
-import com.ion.trials.akka.util.TestingTime
-
-import scala.concurrent.duration._
-import scala.language.postfixOps
+import com.ion.trials.akka.util.{AuctionTestData, TestingTime}
 
 class AuctionActorSpec
     extends TestKit(ActorSystem("AkkaAuctionTest"))
     with Matchers
     with WordSpecLike
     with ImplicitSender
-    with BeforeAndAfterAll {
+    with BeforeAndAfterAll
+    with AuctionTestData {
 
   override def afterAll: Unit = {
     TestKit.shutdownActorSystem(system)
@@ -218,38 +215,7 @@ class AuctionActorSpec
     }
   }
 
-  private val auctioneerId = 1
-  private val auctionId = 1
-  private val currentTime = 10
-
-  private val startTime = currentTime + 1
-  private val endTime = startTime + 2
-
-  private val auctionRule = AuctionRule(startDate = AuctionDate(startTime),
-                                        endDate = AuctionDate(endTime),
-                                        item = 1,
-                                        initialPrice = 0,
-                                        increment = AuctionTypes.toIncrement(1))
-
   private var auction: Option[ActorRef] = None
-
-  private val auctionInfo = AuctionInfo(
-    rule = auctionRule,
-    state = AuctionActor.planned,
-    bidders = List(),
-    bids = List(),
-    winner = None,
-    currentPrice = None,
-    auctionId = auctionId,
-    auctioneerId = auctioneerId
-  )
-
-  private val expectedMsgTimeout = 500 millis
-  private val emptyUpdate = AuctionRuleParamsUpdate(startDate = None,
-                                                    endDate = None,
-                                                    item = None,
-                                                    initialPrice = None,
-                                                    increment = None)
 
   private def createOpennedAuction()
     : Tuple2[TestActorRef[AuctionActorInTest], AuctionInfo] = {
