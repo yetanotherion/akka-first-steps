@@ -7,7 +7,7 @@ import com.ion.trials.akka.actors.AuctionActor.{
   OpennedMessage,
   PlannedMessage
 }
-import com.ion.trials.akka.actors.BidsOfBidderActor.{
+import com.ion.trials.akka.actors.GatherBidsOfBidderActor.{
   BidsOfBidder,
   BidsOfBidderRequest,
   DeleteFromCache
@@ -136,7 +136,8 @@ class AuctionHouseActorBase(time: AuctionTime.Time)
         case false => {
           /* this actor will stop by itself when done or upon timeout */
           val newActor =
-            context.actorOf(BidsOfBidderActor.props(bidder), "BidsOfBidder")
+            context.actorOf(GatherBidsOfBidderActor.props(bidder),
+                            "BidsOfBidder")
           newActor ! BidsOfBidderRequest(bidder = bidder,
                                          auctions = actors,
                                          respondTo = sender)

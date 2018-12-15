@@ -15,7 +15,7 @@ import scala.concurrent.Future
 import akka.pattern.ask
 import akka.util.Timeout
 import com.ion.trials.akka.actors.AuctionHouseActor._
-import com.ion.trials.akka.actors.BidsOfBidderActor.BidsOfBidder
+import com.ion.trials.akka.actors.GatherBidsOfBidderActor.BidsOfBidder
 import com.ion.trials.akka.actors.GatherAuctionsActor.AuctionInfos
 
 import scala.util.{Failure, Success}

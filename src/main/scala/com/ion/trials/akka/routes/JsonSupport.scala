@@ -1,7 +1,7 @@
 package com.ion.trials.akka.routes
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import com.ion.trials.akka.actors.BidsOfBidderActor.BidsOfBidder
+import com.ion.trials.akka.actors.GatherBidsOfBidderActor.BidsOfBidder
 import com.ion.trials.akka.actors.GatherAuctionsActor.AuctionInfos
 import com.ion.trials.akka.auction.AuctionTypes
 import com.ion.trials.akka.auction.AuctionTypes._

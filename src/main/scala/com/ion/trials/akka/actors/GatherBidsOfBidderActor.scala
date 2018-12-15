@@ -8,8 +8,8 @@ import com.ion.trials.akka.auction.AuctionTypes._
 
 import scala.concurrent.duration.FiniteDuration
 
-object BidsOfBidderActor {
-  def props(bidder: Bidder): Props = Props(new BidsOfBidderActor(bidder))
+object GatherBidsOfBidderActor {
+  def props(bidder: Bidder): Props = Props(new GatherBidsOfBidderActor(bidder))
   final case class BidsOfBidderRequest(
       bidder: Bidder,
       auctions: List[Tuple2[AuctionKey, ActorRef]],
@@ -20,8 +20,10 @@ object BidsOfBidderActor {
   final case class BidsOfBidder(bids: List[BidsOfBidderInOneAuction])
 }
 
-class BidsOfBidderActor(val bidder: Bidder) extends Actor with ActorLogging {
-  import BidsOfBidderActor._
+class GatherBidsOfBidderActor(val bidder: Bidder)
+    extends Actor
+    with ActorLogging {
+  import GatherBidsOfBidderActor._
 
   override def preStart(): Unit = log.info("BidsOfBidderActor started")
 
