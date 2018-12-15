@@ -8,9 +8,14 @@ import com.ion.trials.akka.actors.AuctionHouseActor._
 import com.ion.trials.akka.actors.GatherAuctionsActor.AuctionInfos
 import com.ion.trials.akka.actors.GatherBidsOfBidderActor.BidsOfBidder
 import com.ion.trials.akka.auction.AuctionTypes._
-import com.ion.trials.akka.routes.{AuctionRuleParamsUpdate}
+import com.ion.trials.akka.routes.AuctionRuleParamsUpdate
 import com.ion.trials.akka.util.{AuctionTestData, TestingTime}
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.{
+  BeforeAndAfterAll,
+  BeforeAndAfterEach,
+  Matchers,
+  WordSpecLike
+}
 
 class AuctionHouseActorSpec
     extends TestKit(ActorSystem("AkkaAuctionHouseTest"))
@@ -18,20 +23,18 @@ class AuctionHouseActorSpec
     with WordSpecLike
     with ImplicitSender
     with BeforeAndAfterAll
+    with BeforeAndAfterEach
     with AuctionTestData {
 
   override def afterAll: Unit = {
     TestKit.shutdownActorSystem(system)
   }
 
-  override def withFixture(test: NoArgTest) = {
-    try super.withFixture(test)
-    finally {
-      auctionHouse match {
-        case None => ()
-        case Some(a) => {
-          system.stop(a)
-        }
+  override def afterEach() = {
+    auctionHouse match {
+      case None => ()
+      case Some(a) => {
+        system.stop(a)
       }
     }
   }
