@@ -131,8 +131,9 @@ class AuctionHouseActorBase(val time: AuctionTime.Time)
     case GetBidsOfBidderRequest(bidder) => {
       val actors = biddersToAuctionCache.getActors(bidder)
       actors.isEmpty match {
-        case true =>
-          sender() != Answer(StatusCodes.OK, Left(BidsOfBidder(bids = List())))
+        case true => {
+          sender() ! Answer(StatusCodes.OK, Left(BidsOfBidder(bids = List())))
+        }
         case false => {
           /* this actor will stop by itself when done or upon timeout */
           val newActor =
