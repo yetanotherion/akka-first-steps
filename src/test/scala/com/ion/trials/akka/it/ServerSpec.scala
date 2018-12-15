@@ -8,20 +8,18 @@ import com.ion.trials.akka.auction.AuctionTypes
 import com.ion.trials.akka.auction.AuctionTypes.{
   AuctionDate,
   AuctionInfo,
-  AuctionKey,
-  AuctionRule,
-  Increment
+  AuctionKey
 }
-import com.ion.trials.akka.auction.Planned.plannedStr
 import com.ion.trials.akka.routes.{AuctionHouseRoutes, AuctionRuleParams}
-import com.ion.trials.akka.util.TestingTime
+import com.ion.trials.akka.util.{AuctionTestData, TestingTime}
 import org.scalatest.{Matchers, WordSpec}
 
 class ServerSpec
     extends WordSpec
     with Matchers
     with ScalatestRouteTest
-    with AuctionHouseRoutes {
+    with AuctionHouseRoutes
+    with AuctionTestData {
 
   "Auctioneer API" should {
     "create an auction on POST /auctioneer/id/auction" in {
@@ -47,10 +45,6 @@ class ServerSpec
     }
   }
 
-  private val currentTime = 10
-  private val startTime = currentTime + 2
-  private val endTime = startTime + 1
-
   private val testingTime = new TestingTime(currentTime)
 
   val auctionHouseActor: ActorRef =
@@ -58,24 +52,5 @@ class ServerSpec
                    "auctionHouseActor")
 
   val routes = auctionHouseRoutes
-
-  private def createExpectedAuctionInfo(key: AuctionKey): AuctionInfo = {
-    AuctionInfo(rule = auctionRule,
-                state = plannedStr,
-                bidders = List(),
-                bids = List(),
-                winner = None,
-                currentPrice = None,
-                auctionId = key.auctionId,
-                auctioneerId = key.auctioneerId)
-  }
-
-  private val auctionRule = AuctionRule(
-    startDate = AuctionDate(startTime),
-    endDate = AuctionDate(endTime),
-    item = 1,
-    initialPrice = 0,
-    increment = Increment(1)
-  )
 
 }
