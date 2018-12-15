@@ -1,4 +1,4 @@
-package com.spideo.hiring.ion.actor
+package com.ion.trials.akka.actor
 
 import akka.actor.Props
 import com.ion.trials.akka.actors.{AuctionActor, AuctionActorBase}

@@ -1,4 +1,4 @@
-package com.spideo.hiring.ion.actor
+package com.ion.trials.akka.actor
 
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import akka.actor.{ActorRef, ActorSystem}
