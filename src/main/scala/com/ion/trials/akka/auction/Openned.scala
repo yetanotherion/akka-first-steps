@@ -65,7 +65,7 @@ class Openned(notStarted: Planned) {
       return Some(s"${bidder} did not join the auction yet")
     }
     if (!validateIncrement(bid)) {
-      return Some(s"${bid.price} does not respect increment rules")
+      return Some(s"bidder: ${bid.bidder} does not respect increment rules")
     }
     None
   }
