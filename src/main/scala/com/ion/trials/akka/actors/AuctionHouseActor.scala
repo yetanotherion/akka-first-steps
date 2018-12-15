@@ -1,7 +1,9 @@
 package com.ion.trials.akka.actors
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, Timers}
+import akka.pattern.{AskTimeoutException, gracefulStop}
 import akka.http.scaladsl.model.StatusCodes
+
 import com.ion.trials.akka.actors.AuctionActor.{
   GetMessage,
   OpennedMessage,
@@ -25,6 +27,10 @@ import com.ion.trials.akka.auction.{
   Planned
 }
 import com.ion.trials.akka.routes.{AuctionRuleParams, AuctionRuleParamsUpdate}
+
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 object AuctionHouseActor {
   def props(): Props = Props(new AuctionHouseActor)
@@ -51,6 +57,8 @@ object AuctionHouseActor {
 
   final case class GetAuctioneersAuctions(auctioneerId: AuctioneerId)
 
+  final case object DeleteAuctions
+
 }
 
 class AuctionHouseActor
@@ -71,6 +79,7 @@ class AuctionHouseActorBase(val time: AuctionTime.Time)
     scala.collection.mutable.HashMap.empty[AuctioneerId, Auctioneer]
 
   val biddersToAuctionCache = new BiddersToAuctions()
+  implicit val executionContext: ExecutionContext = context.dispatcher
 
   override def receive = {
 
@@ -147,10 +156,7 @@ class AuctionHouseActorBase(val time: AuctionTime.Time)
     }
 
     case GetAuctions => {
-      val auctions =
-        auctioneers.values.foldLeft(List.empty[Tuple2[AuctionKey, ActorRef]]) {
-          case (res, auctioneer) => res ::: auctioneer.getAllAuctions()
-        }
+      val auctions = getAllAuctions()
       sendGetAuctionsQuery(auctions, sender)
     }
 
@@ -162,6 +168,33 @@ class AuctionHouseActorBase(val time: AuctionTime.Time)
       sendGetAuctionsQuery(auctions, sender)
     }
 
+    case DeleteAuctions => {
+      try {
+        val (futures: List[Future[Boolean]]) = getAllAuctions()
+          .map(_._2)
+          .map(gracefulStop(_, 5 seconds))
+
+        val waitForThemAll = Future.sequence(futures)
+        Await.result(waitForThemAll, 6 seconds)
+        clear()
+        sendGetAuctionsQuery(auctions = List(), sender())
+      } catch {
+        case e: AskTimeoutException =>
+          Answer(StatusCodes.InternalServerError,
+                 Right(Error(s"Could not shutdown all actors in time")))
+      }
+    }
+  }
+
+  private def clear(): Unit = {
+    biddersToAuctionCache.clear()
+    auctioneers.clear()
+  }
+
+  private def getAllAuctions(): List[Tuple2[AuctionKey, ActorRef]] = {
+    auctioneers.values.foldLeft(List.empty[Tuple2[AuctionKey, ActorRef]]) {
+      case (res, auctioneer) => res ::: auctioneer.getAllAuctions()
+    }
   }
 
   private def sendGetAuctionsQuery(auctions: List[Tuple2[AuctionKey, ActorRef]],

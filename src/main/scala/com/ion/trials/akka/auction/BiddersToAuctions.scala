@@ -40,4 +40,7 @@ class BiddersToAuctions {
     }
   }
 
+  def clear(): Unit = {
+    biddersToAuctions.clear()
+  }
 }
