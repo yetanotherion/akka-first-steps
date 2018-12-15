@@ -56,7 +56,7 @@ object AuctionHouseActor {
 class AuctionHouseActor
     extends AuctionHouseActorBase(time = AuctionTime.SystemTime)
 
-class AuctionHouseActorBase(time: AuctionTime.Time)
+class AuctionHouseActorBase(val time: AuctionTime.Time)
     extends Actor
     with ActorLogging
     with Timers {

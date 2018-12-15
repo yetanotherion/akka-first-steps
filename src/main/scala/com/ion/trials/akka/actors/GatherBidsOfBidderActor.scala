@@ -75,7 +75,9 @@ class GatherBidsOfBidderActor(val bidder: Bidder)
     expectedAnswers.isEmpty match {
       case true => {
         respondTo ! Answer(status = StatusCodes.OK,
-                           msg = Left(BidsOfBidder(bids = res)))
+                           msg = Left(BidsOfBidder(bids = res.sortBy { bid =>
+                             (bid.auctioneerId, bid.auctionId)
+                           })))
         context stop self
       }
       case false => {

@@ -67,8 +67,10 @@ class GatherAuctionsActor extends Actor with ActorLogging {
                                   res: List[AuctionInfo]) = {
     expectedAnswers.isEmpty match {
       case true => {
-        respondTo ! Answer(status = StatusCodes.OK,
-                           msg = Left(AuctionInfos(auctions = res)))
+        respondTo ! Answer(
+          status = StatusCodes.OK,
+          msg = Left(AuctionInfos(auctions = res.sortBy(auctionInfo =>
+            (auctionInfo.auctioneerId, auctionInfo.auctionId)))))
         context stop self
       }
       case false => {
