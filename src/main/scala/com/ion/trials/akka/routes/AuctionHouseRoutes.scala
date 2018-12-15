@@ -69,12 +69,20 @@ trait AuctionHouseRoutes extends JsonSupport {
     pathPrefix("auctioneer") {
       concat(
         pathEnd {
-          get {
-            val (auctions: Future[Answer[AuctionInfos]]) =
-              (auctionHouseActor ? GetAuctions)
-                .mapTo[Answer[AuctionInfos]]
-            completeAuctionInfosAnswer(auctions)
-          }
+          concat(
+            get {
+              val (auctions: Future[Answer[AuctionInfos]]) =
+                (auctionHouseActor ? GetAuctions)
+                  .mapTo[Answer[AuctionInfos]]
+              completeAuctionInfosAnswer(auctions)
+            },
+            delete {
+              val (auctions: Future[Answer[AuctionInfos]]) =
+                (auctionHouseActor ? DeleteAuctions)
+                  .mapTo[Answer[AuctionInfos]]
+              completeAuctionInfosAnswer(auctions)
+            }
+          )
         },
         pathPrefix(IntNumber) { auctioneerId =>
           concat(
