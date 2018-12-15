@@ -1,8 +1,14 @@
 package com.ion.trials.akka.actors
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import akka.http.scaladsl.model.{StatusCodes}
-import com.ion.trials.akka.auction.{AuctionTypes, Closed, Openned, Planned}
+import akka.http.scaladsl.model.StatusCodes
+import com.ion.trials.akka.auction.{
+  AuctionTime,
+  AuctionTypes,
+  Closed,
+  Openned,
+  Planned
+}
 import com.ion.trials.akka.auction.AuctionTypes._
 
 sealed trait State
@@ -34,39 +40,21 @@ object AuctionActor {
 
   final case class GetAuctionInfoAnswer(answer: AuctionInfo)
 
-  def getCurrentTime() = System.currentTimeMillis()
-
   val planned = Planned.plannedStr
   val closed = Closed.closedStr
   val openned = Openned.opennedStr
-
-  abstract class Time {
-    def getCurrentTime(): Long
-    def setCurrentTime(currTime: Long): Unit
-    def advanceCurrentTime(shift: Long): Unit
-  }
-
-  final object SystemTime extends AuctionActor.Time {
-    def getCurrentTime() = AuctionActor.getCurrentTime()
-    def setCurrentTime(currTime: Long) = {
-      throw new RuntimeException("setCurrentTime not supported")
-    }
-    def advanceCurrentTime(shift: Long) = {
-      throw new RuntimeException("advanceCurrentTime not supported")
-    }
-  }
 
 }
 
 class AuctionActor(auctioneerId: AuctioneerId,
                    auctionId: AuctionId,
                    rule: AuctionRule)
-    extends AuctionActorBase(time = AuctionActor.SystemTime,
+    extends AuctionActorBase(time = AuctionTime.SystemTime,
                              auctioneerId = auctioneerId,
                              auctionId = auctionId,
                              rule = rule)
 
-class AuctionActorBase(val time: AuctionActor.Time,
+class AuctionActorBase(val time: AuctionTime.Time,
                        auctioneerId: AuctioneerId,
                        auctionId: AuctionId,
                        rule: AuctionRule)

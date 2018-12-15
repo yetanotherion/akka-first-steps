@@ -1,7 +1,8 @@
 package com.ion.trials.akka.actor
 
 import akka.actor.Props
-import com.ion.trials.akka.actors.{AuctionActor, AuctionActorBase}
+import com.ion.trials.akka.actors.{AuctionActorBase}
+import com.ion.trials.akka.auction.AuctionTime
 import com.ion.trials.akka.auction.AuctionTypes.{
   AuctionId,
   AuctionRule,
@@ -25,7 +26,7 @@ class AuctionActorInTest(time: TestingTime,
                              auctionId = auctionId,
                              rule = rule)
 
-class TestingTime(var currentTime: Long) extends AuctionActor.Time {
+class TestingTime(var currentTime: Long) extends AuctionTime.Time {
 
   def getCurrentTime() = currentTime
 
