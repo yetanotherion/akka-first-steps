@@ -10,6 +10,7 @@ import com.ion.trials.akka.actors.AuctionActor.{
   OpennedMessage,
   PlannedMessage
 }
+
 import com.ion.trials.akka.auction.AuctionTypes
 import com.ion.trials.akka.auction.AuctionTypes._
 import com.ion.trials.akka.auction.Openned.{NewBid, NewBidder}
