@@ -1,6 +1,11 @@
 package com.ion.trials.akka.actor
 
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.{
+  BeforeAndAfterAll,
+  BeforeAndAfterEach,
+  Matchers,
+  WordSpecLike
+}
 import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.model.StatusCodes
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit}
@@ -21,20 +26,18 @@ class AuctionActorSpec
     with WordSpecLike
     with ImplicitSender
     with BeforeAndAfterAll
+    with BeforeAndAfterEach
     with AuctionTestData {
 
   override def afterAll: Unit = {
     TestKit.shutdownActorSystem(system)
   }
 
-  override def withFixture(test: NoArgTest) = {
-    try super.withFixture(test)
-    finally {
-      auction match {
-        case None => ()
-        case Some(a) => {
-          system.stop(a)
-        }
+  override def afterEach() = {
+    auction match {
+      case None => ()
+      case Some(a) => {
+        system.stop(a)
       }
     }
   }
