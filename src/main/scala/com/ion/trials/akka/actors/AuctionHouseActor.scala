@@ -77,11 +77,13 @@ class AuctionHouseActor extends Actor with ActorLogging with Timers {
           } else {
             sender() ! Answer(
               StatusCodes.Conflict,
-              Right(s"Auction $auctionId was already created by $auctioneerId"))
+              Right(
+                Error(
+                  s"Auction $auctionId was already created by $auctioneerId")))
           }
         case Right(e) =>
           sender() ! Answer(StatusCodes.BadRequest,
-                            Right(s"Got errors ${e.mkString("\n")}"))
+                            Right(Error(s"Got errors ${e.mkString("\n")}")))
       }
     }
     case UpdateAuction(auctioneerId, auctionId, auctionRuleParamsUpdate) =>
@@ -175,7 +177,7 @@ class AuctionHouseActor extends Actor with ActorLogging with Timers {
       case None => {
         sender() ! Answer(
           StatusCodes.NotFound,
-          Right(s"Auction $auctionId was not created by $auctioneerId"))
+          Right(Error(s"Auction $auctionId was not created by $auctioneerId")))
       }
     }
   }

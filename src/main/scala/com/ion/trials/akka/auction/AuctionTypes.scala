@@ -38,7 +38,8 @@ object AuctionTypes {
       auctioneerId: AuctioneerId
   )
 
-  final case class Answer[T](status: StatusCode, msg: Either[T, String])
+  final case class Answer[T](status: StatusCode, msg: Either[T, Error])
+  final case class Error(error: String)
 
   def getSuccess[T](answer: Answer[T]): Option[T] = {
     answer.msg match {

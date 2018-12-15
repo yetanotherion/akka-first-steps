@@ -70,8 +70,8 @@ class AuctionActorSpec
         expectedMsgTimeout,
         Answer(
           StatusCodes.BadRequest,
-          Right(
-            s"invalid request: newStartDate: $startDate > endDate: $endDate")))
+          Right(Error(
+            s"invalid request: newStartDate: $startDate > endDate: $endDate"))))
     }
 
     "not update its state with a single bad update parameter" in {
@@ -85,8 +85,9 @@ class AuctionActorSpec
         emptyUpdate.copy(startDate = Some(newEndDate), item = Some(42)))
       expectMsg(
         expectedMsgTimeout,
-        Answer(StatusCodes.BadRequest,
-               Right(s"invalid request: '$newEndDate' is an invalid date")))
+        Answer(
+          StatusCodes.BadRequest,
+          Right(Error(s"invalid request: '$newEndDate' is an invalid date"))))
 
       auction ! GetMessage
       expectOkAuctionInfo(auctionInfo)
@@ -153,9 +154,10 @@ class AuctionActorSpec
       expectOkAuctionInfo(newExpectedAuction)
       val bid = Bid(bidder = 1, price = 0)
       auction ! OpennedMessage(NewBid(bid))
-      expectMsg(expectedMsgTimeout,
-                Answer(StatusCodes.BadRequest,
-                       Right("bidder: 1 does not respect increment rules")))
+      expectMsg(
+        expectedMsgTimeout,
+        Answer(StatusCodes.BadRequest,
+               Right(Error("bidder: 1 does not respect increment rules"))))
     }
 
     "refuse a bid from an bidder that did not join the auction" in {
@@ -164,7 +166,7 @@ class AuctionActorSpec
       auction ! OpennedMessage(NewBid(bid))
       expectMsg(expectedMsgTimeout,
                 Answer(StatusCodes.BadRequest,
-                       Right("1 did not join the auction yet")))
+                       Right(Error("1 did not join the auction yet"))))
     }
 
     "accept a bid from two bidders and close to the correct winner" in {
@@ -207,7 +209,7 @@ class AuctionActorSpec
       expectMsg(
         expectedMsgTimeout,
         Answer(StatusCodes.BadRequest,
-               Right("Message not supported in current state 'closed'")))
+               Right(Error("Message not supported in current state 'closed'"))))
     }
   }
 

@@ -243,7 +243,7 @@ class Planned(var rule: AuctionRule,
       }
       case Right(error) =>
         Answer(StatusCodes.BadRequest,
-               Right(s"invalid request: ${error.mkString(";")}"))
+               Right(Error(s"invalid request: ${error.mkString(";")}")))
     }
   }
 

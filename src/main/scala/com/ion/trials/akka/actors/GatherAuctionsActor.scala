@@ -58,7 +58,7 @@ class GatherAuctionsActor extends Actor with ActorLogging {
     case ReceiveTimeout =>
       respondTo ! Answer(
         StatusCodes.RequestTimeout,
-        Right("All actors did not answer in time, please retry"))
+        Right(Error("All actors did not answer in time, please retry")))
       context stop self
   }
 

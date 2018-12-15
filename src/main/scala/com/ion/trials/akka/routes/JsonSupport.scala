@@ -28,6 +28,7 @@ trait JsonSupport extends SprayJsonSupport {
     }
   }
 
+  implicit val errorJsonFormat = jsonFormat1(Error)
   implicit val actionRuleParamsJsonFormat = jsonFormat5(AuctionRuleParams)
   implicit val auctionRulesParamsUpdateJsonFormat = jsonFormat5(
     AuctionRuleParamsUpdate)

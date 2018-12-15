@@ -186,7 +186,8 @@ class AuctionActorBase(val time: AuctionActor.Time,
   private def messageNotSupportedAnswer =
     Answer(
       StatusCodes.BadRequest,
-      Right(s"Message not supported in current state '${stateToString()}'"))
+      Right(
+        Error(s"Message not supported in current state '${stateToString()}'")))
 
   private def stateToString() = {
     state match {

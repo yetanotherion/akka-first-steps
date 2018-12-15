@@ -45,7 +45,7 @@ class Openned(notStarted: Planned) {
 
   private def receiveBid(bid: Bid): Answer[AuctionInfo] = {
     validateBid(bid) match {
-      case Some(error) => Answer(StatusCodes.BadRequest, Right(error))
+      case Some(error) => Answer(StatusCodes.BadRequest, Right(Error(error)))
       case None => {
         addBid(bid)
         Answer(StatusCodes.OK, Left(toOpennedInfo(this)))
