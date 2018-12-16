@@ -150,7 +150,7 @@ class AuctionActorSpec
         newExpectedAuction.copy(bids = List(bid), currentPrice = Some(3)))
     }
 
-    "refuse a bid from an valid bidder" in {
+    "refuse a bid from an invalid bidder" in {
       val (auction, expectedAuctionInfo) = createOpennedAuction()
       auction ! OpennedMessage(NewBidder(1))
       val newExpectedAuction = expectedAuctionInfo.copy(bidders = List(1))
