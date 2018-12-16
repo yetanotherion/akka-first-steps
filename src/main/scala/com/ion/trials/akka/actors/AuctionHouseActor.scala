@@ -85,6 +85,7 @@ class AuctionHouseActorBase(val time: AuctionTime.Time)
 
   override def receive = {
 
+    /* 1 -> 1 */
     case CreateAuction(auctioneerId, auctionId, auctionRuleParams) => {
       Planned.validateAuctionRuleParams(auctionRuleParams) match {
         case Left(auctionRule) =>

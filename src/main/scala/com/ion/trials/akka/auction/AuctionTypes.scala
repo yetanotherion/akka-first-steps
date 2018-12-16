@@ -49,7 +49,6 @@ object AuctionTypes {
     }
   }
 
-  /* API <-> auctionHouse */
   final case class BidsOfBidderInOneAuction(bidder: Bidder,
                                             state: String,
                                             bidders: List[Bidder],
@@ -59,7 +58,6 @@ object AuctionTypes {
                                             executedBids: List[Bid])
   final case class GetBidsOfBidderRequest(bidder: Bidder)
 
-  /* auctionHouse <-> auction */
   final case class NotFound(bidder: Bidder,
                             auctioneerId: AuctioneerId,
                             auctionId: AuctionId)
