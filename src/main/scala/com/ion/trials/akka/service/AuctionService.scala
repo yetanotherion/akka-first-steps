@@ -13,6 +13,7 @@ import com.ion.trials.akka.actors.AuctionHouseActor.{
 import com.ion.trials.akka.auction.AuctionTypes.{
   Answer,
   AuctionInfo,
+  IncrementSlot,
   Item,
   Price
 }
@@ -30,17 +31,24 @@ import javax.ws.rs.{GET, POST, PUT, Path}
 import scala.concurrent.{ExecutionContext, Future}
 
 object AuctionService {
+
+  final case class IncrementParams(minIncrementAfterLastSlot: Price,
+                                   slots: List[IncrementSlot])
   final case class AuctionRuleParams(startDate: String,
                                      endDate: String,
                                      item: Item,
                                      initialPrice: Price,
-                                     increment: Int)
+                                     increment: IncrementParams)
+
+  def toIncrementParams(default: Price) = {
+    IncrementParams(minIncrementAfterLastSlot = default, slots = List())
+  }
 
   final case class AuctionRuleParamsUpdate(startDate: Option[String],
                                            endDate: Option[String],
                                            item: Option[Item],
                                            initialPrice: Option[Price],
-                                           increment: Option[Int])
+                                           increment: Option[IncrementParams])
 }
 
 @Path("/auctioneer/<auctioneerId>/auction/<auctionId>")
@@ -54,7 +62,7 @@ class AuctionService(auctionHouseActor: ActorRef, system: ActorSystem)(
   @GET
   @Operation(
     summary = "Return the auction auctionId created by auctioneerId",
-    description = "\"Return the auction auctionId created by auctioneerId\"",
+    description = "Return the auction auctionId created by auctioneerId",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -81,7 +89,7 @@ class AuctionService(auctionHouseActor: ActorRef, system: ActorSystem)(
   @POST
   @Operation(
     summary = "Make auctioneerId create the auction auctionId",
-    description = "\"Return the created auction",
+    description = "Return the created auction",
     requestBody = new RequestBody(
       content = Array(new Content(
         schema = new Schema(implementation = classOf[AuctionRuleParams])))),

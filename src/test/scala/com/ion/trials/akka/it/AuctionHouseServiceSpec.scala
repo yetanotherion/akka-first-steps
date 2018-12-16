@@ -168,7 +168,7 @@ class AuctionHouseServiceSpec
       endDate = AuctionTypes.fromAuctionDate(AuctionDate(endTime)),
       item = 1,
       initialPrice = 0,
-      increment = 1
+      increment = AuctionService.toIncrementParams(1)
     )
 
     val request = Post(

@@ -39,7 +39,7 @@ object OpennedSpec
 
   property("Bids of bidders that did not join are always refused") =
     forAll(posNum[Int]) { bidder =>
-      val bid = openned.currentPrice + openned.rule.increment.value
+      val bid = openned.currentPrice + openned.rule.increment.slots.head.minIncrement
       val bidderJoined = openned.bidders.contains(bidder)
       bidderJoined match {
         case false => {

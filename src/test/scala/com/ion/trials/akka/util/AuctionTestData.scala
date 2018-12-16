@@ -9,6 +9,7 @@ import com.ion.trials.akka.auction.AuctionTypes.{
   AuctionRule
 }
 import com.ion.trials.akka.auction.Planned.plannedStr
+import com.ion.trials.akka.service.AuctionService
 import com.ion.trials.akka.service.AuctionService.{
   AuctionRuleParams,
   AuctionRuleParamsUpdate
@@ -58,7 +59,7 @@ trait AuctionTestData {
     endDate = AuctionTypes.fromAuctionDate(AuctionDate(endTime)),
     item = 1,
     initialPrice = 0,
-    increment = 1
+    increment = AuctionService.toIncrementParams(1)
   )
 
   def createExpectedAuctionInfo(key: AuctionKey): AuctionInfo = {
