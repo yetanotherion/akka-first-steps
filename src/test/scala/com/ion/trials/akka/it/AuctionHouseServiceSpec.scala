@@ -1,7 +1,7 @@
 package com.ion.trials.akka.it
 
-//import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{ContentTypes, StatusCodes}
+import akka.http.scaladsl.server.RouteConcatenation
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.testkit.TestKit
 import com.ion.trials.akka.actor.AuctionHouseActorInTest
@@ -14,6 +14,7 @@ import com.ion.trials.akka.service.{
   AuctionHouseService,
   AuctionRuleParams,
   AuctionRuleParamsUpdate,
+  BidderService,
   JsonSupport
 }
 import com.ion.trials.akka.util.{AuctionTestData, TestingTime}
@@ -26,9 +27,8 @@ class AuctionHouseServiceSpec
     with BeforeAndAfterEach
     with BeforeAndAfterAll
     with JsonSupport
+    with RouteConcatenation
     with AuctionTestData {
-
-  //val system: ActorSystem
 
   override def afterAll: Unit = {
     TestKit.shutdownActorSystem(system)
@@ -194,6 +194,8 @@ class AuctionHouseServiceSpec
   val auctionHouseActor =
     system.actorOf(AuctionHouseActorInTest.props(testingTime))
 
-  val routes = new AuctionHouseService(auctionHouseActor, system).routes
+  val routes = (new AuctionHouseService(auctionHouseActor, system).routes ~ new BidderService(
+    auctionHouseActor,
+    system).routes)
 
 }
