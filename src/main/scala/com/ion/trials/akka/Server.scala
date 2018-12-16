@@ -7,6 +7,7 @@ import akka.stream.ActorMaterializer
 import com.ion.trials.akka.actors.AuctionHouseActor
 import com.ion.trials.akka.service.{
   AuctionHouseService,
+  AuctioneerService,
   AuctioneersService,
   BidderService,
   SwaggerDocService
@@ -30,6 +31,7 @@ object Server extends App with RouteConcatenation {
     new AuctionHouseService(auctionHouseActor, system).routes ~
       new BidderService(auctionHouseActor, system).routes ~
       new AuctioneersService(auctionHouseActor, system).routes ~
+      new AuctioneerService(auctionHouseActor, system).routes ~
       SwaggerDocService.routes)
   Http().bindAndHandle(routes, "localhost", 5000)
 

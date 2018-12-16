@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.{Operation}
 
-@Path("/bidder/bidderId")
+@Path("/bidder/<bidderId>")
 class BidderService(auctionHouseActor: ActorRef, system: ActorSystem)(
     implicit executionContext: ExecutionContext)
     extends ServiceHelper {
