@@ -3,7 +3,6 @@ package com.ion.trials.akka.actors
 import akka.actor.{Actor, ActorLogging, ActorRef, Props, Timers}
 import akka.pattern.{AskTimeoutException, gracefulStop}
 import akka.http.scaladsl.model.StatusCodes
-
 import com.ion.trials.akka.actors.AuctionActor.{
   GetMessage,
   OpennedMessage,
@@ -26,7 +25,10 @@ import com.ion.trials.akka.auction.{
   BiddersToAuctions,
   Planned
 }
-import com.ion.trials.akka.service.{AuctionRuleParams, AuctionRuleParamsUpdate}
+import com.ion.trials.akka.service.AuctionService.{
+  AuctionRuleParams,
+  AuctionRuleParamsUpdate
+}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._

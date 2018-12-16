@@ -5,6 +5,10 @@ import com.ion.trials.akka.actors.GatherBidsOfBidderActor.BidsOfBidder
 import com.ion.trials.akka.actors.GatherAuctionsActor.AuctionInfos
 import com.ion.trials.akka.auction.AuctionTypes
 import com.ion.trials.akka.auction.AuctionTypes._
+import com.ion.trials.akka.service.AuctionService.{
+  AuctionRuleParams,
+  AuctionRuleParamsUpdate
+}
 import spray.json.{
   DefaultJsonProtocol,
   DeserializationException,

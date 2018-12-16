@@ -9,7 +9,10 @@ import com.ion.trials.akka.auction.AuctionTypes.{
   AuctionRule
 }
 import com.ion.trials.akka.auction.Planned.plannedStr
-import com.ion.trials.akka.service.{AuctionRuleParams, AuctionRuleParamsUpdate}
+import com.ion.trials.akka.service.AuctionService.{
+  AuctionRuleParams,
+  AuctionRuleParamsUpdate
+}
 
 import scala.concurrent.duration._
 import scala.language.postfixOps

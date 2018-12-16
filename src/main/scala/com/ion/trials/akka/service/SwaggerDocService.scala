@@ -8,7 +8,8 @@ object SwaggerDocService extends SwaggerHttpService {
     Set(classOf[AuctionHouseService],
         classOf[BidderService],
         classOf[AuctioneersService],
-        classOf[AuctioneerService])
+        classOf[AuctioneerService],
+        classOf[AuctionService])
   override val host = "localhost:5000"
   override val info = Info(version = "1.0")
   override val unwantedDefinitions =

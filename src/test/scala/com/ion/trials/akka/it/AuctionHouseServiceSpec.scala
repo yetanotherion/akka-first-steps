@@ -10,6 +10,10 @@ import com.ion.trials.akka.actors.GatherAuctionsActor.AuctionInfos
 import com.ion.trials.akka.actors.GatherBidsOfBidderActor.BidsOfBidder
 import com.ion.trials.akka.auction.AuctionTypes
 import com.ion.trials.akka.auction.AuctionTypes._
+import com.ion.trials.akka.service.AuctionService.{
+  AuctionRuleParams,
+  AuctionRuleParamsUpdate
+}
 import com.ion.trials.akka.service._
 import com.ion.trials.akka.util.{AuctionTestData, TestingTime}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpec}
@@ -191,6 +195,7 @@ class AuctionHouseServiceSpec
   val routes = (new AuctionHouseService(auctionHouseActor, system).routes
     ~ new BidderService(auctionHouseActor, system).routes
     ~ new AuctioneersService(auctionHouseActor, system).routes
-    ~ new AuctioneerService(auctionHouseActor, system).routes)
+    ~ new AuctioneerService(auctionHouseActor, system).routes
+    ~ new AuctionService(auctionHouseActor, system).routes)
 
 }
