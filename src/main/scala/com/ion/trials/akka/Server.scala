@@ -22,7 +22,7 @@ object Server extends App with RouteConcatenation {
     system.actorOf(AuctionHouseActor.props, "auctionHouseActor")
 
   val routes = cors()(
-    new AuctionHouseService(auctionHouseActor, system).routes ~
+    new BidInAuctionService(auctionHouseActor, system).routes ~
       new BidderService(auctionHouseActor, system).routes ~
       new AuctioneersService(auctionHouseActor, system).routes ~
       new AuctioneerService(auctionHouseActor, system).routes ~

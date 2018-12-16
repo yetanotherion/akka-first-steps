@@ -5,7 +5,7 @@ import com.github.swagger.akka.model.Info
 
 object SwaggerDocService extends SwaggerHttpService {
   override val apiClasses =
-    Set(classOf[AuctionHouseService],
+    Set(classOf[BidInAuctionService],
         classOf[BidderService],
         classOf[AuctioneersService],
         classOf[AuctioneerService],
