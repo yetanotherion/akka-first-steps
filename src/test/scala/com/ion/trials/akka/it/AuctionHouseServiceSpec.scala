@@ -186,7 +186,8 @@ class AuctionHouseServiceSpec
     }
   }
 
-  // XXX unit tests cannot be run in // due this singleton
+  /* XXX unit tests cannot be run in // due this object being shared
+     by all unit tests */
   private val testingTime = new TestingTime(currentTime)
 
   val auctionHouseActor =
