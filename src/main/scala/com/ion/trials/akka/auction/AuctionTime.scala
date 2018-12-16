@@ -7,10 +7,8 @@ object AuctionTime {
     def advanceCurrentTime(shift: Long): Unit
   }
 
-  def getCurrentTime() = System.currentTimeMillis()
-
   final object SystemTime extends Time {
-    def getCurrentTime() = getCurrentTime()
+    def getCurrentTime() = System.currentTimeMillis()
 
     def setCurrentTime(currTime: Long) = {
       throw new RuntimeException("setCurrentTime not supported")
