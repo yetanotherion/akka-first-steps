@@ -2,15 +2,15 @@ package com.ion.trials.akka
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.{RouteConcatenation}
 import akka.stream.ActorMaterializer
 import com.ion.trials.akka.actors.AuctionHouseActor
-import com.ion.trials.akka.service.AuctionHouseService
+import com.ion.trials.akka.service.{AuctionHouseService}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-object Server extends App with AuctionHouseService {
+object Server extends App with RouteConcatenation {
 
   implicit val system = ActorSystem("auction-house")
   implicit val materializer = ActorMaterializer()
@@ -20,8 +20,7 @@ object Server extends App with AuctionHouseService {
   val auctionHouseActor: ActorRef =
     system.actorOf(AuctionHouseActor.props, "auctionHouseActor")
 
-  lazy val routes: Route = auctionHouseRoutes
-
+  val routes = new AuctionHouseService(auctionHouseActor, system).routes
   Http().bindAndHandle(routes, "localhost", 5000)
 
   println(s"Server online at http://localhost:5000/")
