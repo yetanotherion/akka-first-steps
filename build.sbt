@@ -24,5 +24,6 @@ libraryDependencies ++= Seq(
   "com.github.swagger-akka-http" %% "swagger-akka-http" % "2.0.0",
   "com.github.swagger-akka-http" %% "swagger-scala-module" % "2.0.2",
   "ch.megard" %% "akka-http-cors" % "0.3.0",
-  "org.scalatest" %% "scalatest" % "3.0.5" % "test"
+  "org.scalatest" %% "scalatest" % "3.0.5" % "test",
+  "org.scalacheck" %% "scalacheck" % "1.14.0" % "test"
 )
