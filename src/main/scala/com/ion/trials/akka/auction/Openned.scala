@@ -74,8 +74,19 @@ class Openned(notStarted: Planned) {
 
   private def validateIncrement(bid: Bid): Boolean = {
     rule.increment match {
-      case Increment(value) => value <= bid.price - currentPrice
+      case Increment(value) =>
+        findCurrentIncrement(value) <= bid.price - currentPrice
     }
+  }
+
+  /* assumes list is sorted from lowest to biggest endOfSlot */
+  private def findCurrentIncrement(slots: List[IncrementSlot]): Price = {
+    slots
+      .filter { slot =>
+        currentPrice <= slot.endOfSlot
+      }
+      .head
+      .minIncrement
   }
 
   private def addBid(bid: Bid): Unit = {

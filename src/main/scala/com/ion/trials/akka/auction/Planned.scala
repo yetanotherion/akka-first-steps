@@ -4,7 +4,8 @@ import akka.http.scaladsl.model.StatusCodes
 import com.ion.trials.akka.auction.AuctionTypes._
 import com.ion.trials.akka.service.AuctionService.{
   AuctionRuleParams,
-  AuctionRuleParamsUpdate
+  AuctionRuleParamsUpdate,
+  IncrementParams
 }
 
 object Planned {
@@ -14,7 +15,8 @@ object Planned {
   final case class NewRawStartDate(newStartDate: String) extends RawUpdate
   final case class NewRawEndDate(newEndDate: String) extends RawUpdate
   final case class NewRawInitialPrice(newInitialPrice: Price) extends RawUpdate
-  final case class NewRawIncrement(newIncrement: Increment) extends RawUpdate
+  final case class NewRawIncrement(newIncrement: IncrementParams)
+      extends RawUpdate
   final case class NewRawItem(newItem: Item) extends RawUpdate
 
   sealed abstract class Update
@@ -109,7 +111,7 @@ object Planned {
     val updateNewIncrement = { l: List[RawUpdate] =>
       doUpdate(l,
                () => message.increment,
-               (x: Int) => NewRawIncrement.apply(toIncrement(x)))
+               (x: IncrementParams) => NewRawIncrement.apply(x))
     }
 
     val updateNewItem = { l: List[RawUpdate] =>
@@ -158,7 +160,11 @@ object Planned {
           }
         }
         case NewRawIncrement(newIncrement) =>
-          addMessage(res, NewIncrement(newIncrement))
+          validateNewRawIncrement(newIncrement) match {
+            case Left(increment) => addMessage(res, NewIncrement(increment))
+            case Right(error)    => addError(res, error)
+          }
+
         case NewRawItem(newRawItem) => addMessage(res, NewItem(newRawItem))
       }
     }
@@ -209,6 +215,47 @@ object Planned {
     }
   }
 
+  private def validateNewRawIncrement(
+      increment: IncrementParams): Either[Increment, String] = {
+    val sortedParams = increment.slots.sortBy { _.endOfSlot }
+    val maxValues = sortedParams.map { _.endOfSlot }
+    val negativeEndOfSlots = maxValues.filter { _ < 0 }
+    if (!negativeEndOfSlots.isEmpty) {
+      return Right(s"endOfSlots: '${negativeEndOfSlots}' are negative")
+    }
+    val negativeIncrements =
+      sortedParams.map { _.minIncrement }.filter { _ < 0 }
+    if (!negativeIncrements.isEmpty) {
+      return Right(s"minIncrements: '${negativeIncrements}' are negative")
+    }
+    val uniqueValue = sortedParams.map { _.endOfSlot }.toSet
+    if (uniqueValue.size != sortedParams.size) {
+      val duplicated = uniqueValue
+        .map { value =>
+          (value, maxValues.count { maxVal =>
+            maxVal == value
+          })
+        }
+        .filter(_._2 > 1)
+        .map(_._1)
+      return Right(s"endOfSlots: '${duplicated}' are duplicated")
+    }
+    val default = increment.minIncrementAfterLastSlot
+    val lastSlot = List(
+      IncrementSlot(endOfSlot = Integer.MAX_VALUE, minIncrement = default))
+    sortedParams.reverse match {
+      case last :: tl => {
+        if (last.endOfSlot == Integer.MAX_VALUE && default != last.minIncrement) {
+          Right(
+            s"minIncrementAfterLastSlot value $default and ${last.minIncrement} are incompatible")
+        } else {
+          Left(Increment(slots = sortedParams ::: lastSlot))
+        }
+      }
+      case List() => Left(Increment(lastSlot))
+    }
+  }
+
   private val emptyUpdateOrError: UpdateOrError = Left(List())
 
   private def addMessage(res: UpdateOrError, message: Update) = {
@@ -229,7 +276,7 @@ object Planned {
     startDate = AuctionDate(0),
     endDate = AuctionDate(Long.MaxValue),
     initialPrice = 0,
-    increment = Increment(0),
+    increment = Increment(List(IncrementSlot(Integer.MAX_VALUE, 0))),
     item = 0)
 
 }

@@ -16,7 +16,8 @@ object AuctionTypes {
 
   final case class AuctionKey(auctionId: AuctionId, auctioneerId: AuctioneerId)
 
-  final case class Increment(value: Price)
+  final case class IncrementSlot(endOfSlot: Price, minIncrement: Price)
+  final case class Increment(slots: List[IncrementSlot])
 
   final case class BidParam(bid: Price)
   final case class Bid(bidder: Bidder, price: Price)
@@ -90,7 +91,7 @@ object AuctionTypes {
   }
 
   def toIncrement(param: Integer): Increment = {
-    Increment(param)
+    Increment(slots = List(IncrementSlot(Integer.MAX_VALUE, param)))
   }
 
   private val dateFormat = DateTimeFormatter.ISO_OFFSET_DATE_TIME
