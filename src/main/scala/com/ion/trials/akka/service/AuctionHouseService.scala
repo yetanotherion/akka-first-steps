@@ -11,7 +11,7 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.directives.MethodDirectives.post
 import akka.http.scaladsl.server.directives.RouteDirectives.complete
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import akka.pattern.ask
 import akka.util.Timeout
 import com.ion.trials.akka.actors.AuctionHouseActor._
@@ -32,14 +32,13 @@ final case class AuctionRuleParamsUpdate(startDate: Option[String],
                                          initialPrice: Option[Price],
                                          increment: Option[Int])
 
-trait AuctionHouseService extends JsonSupport {
-  implicit def system: ActorSystem
-
-  lazy val log = Logging(system, classOf[AuctionHouseService])
-
-  def auctionHouseActor: ActorRef
+class AuctionHouseService(auctionHouseActor: ActorRef, system: ActorSystem)(
+    implicit executionContext: ExecutionContext)
+    extends JsonSupport {
 
   implicit lazy val timeout = Timeout(5.seconds)
+
+  lazy val log = Logging(system, classOf[AuctionHouseService])
 
   def completeAnswer[T](onLeft: (StatusCode, T) => Route,
                         answer: Future[Answer[T]]) = {
@@ -179,6 +178,6 @@ trait AuctionHouseService extends JsonSupport {
       }
     }
 
-  lazy val auctionHouseRoutes = auctioneerRoutes ~ bidderRoutes
+  lazy val routes = auctioneerRoutes ~ bidderRoutes
 
 }

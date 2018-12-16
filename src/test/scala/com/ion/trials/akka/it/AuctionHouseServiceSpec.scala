@@ -1,5 +1,6 @@
 package com.ion.trials.akka.it
 
+//import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{ContentTypes, StatusCodes}
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.testkit.TestKit
@@ -12,7 +13,8 @@ import com.ion.trials.akka.auction.AuctionTypes._
 import com.ion.trials.akka.service.{
   AuctionHouseService,
   AuctionRuleParams,
-  AuctionRuleParamsUpdate
+  AuctionRuleParamsUpdate,
+  JsonSupport
 }
 import com.ion.trials.akka.util.{AuctionTestData, TestingTime}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpec}
@@ -21,10 +23,12 @@ class AuctionHouseServiceSpec
     extends WordSpec
     with Matchers
     with ScalatestRouteTest
-    with AuctionHouseService
     with BeforeAndAfterEach
     with BeforeAndAfterAll
+    with JsonSupport
     with AuctionTestData {
+
+  //val system: ActorSystem
 
   override def afterAll: Unit = {
     TestKit.shutdownActorSystem(system)
@@ -190,6 +194,6 @@ class AuctionHouseServiceSpec
   val auctionHouseActor =
     system.actorOf(AuctionHouseActorInTest.props(testingTime))
 
-  val routes = auctionHouseRoutes
+  val routes = new AuctionHouseService(auctionHouseActor, system).routes
 
 }
