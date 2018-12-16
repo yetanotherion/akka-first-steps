@@ -2,7 +2,7 @@ package com.ion.trials.akka.auction
 
 import akka.http.scaladsl.model.StatusCodes
 import com.ion.trials.akka.auction.AuctionTypes._
-import com.ion.trials.akka.routes.{AuctionRuleParams, AuctionRuleParamsUpdate}
+import com.ion.trials.akka.service.{AuctionRuleParams, AuctionRuleParamsUpdate}
 
 object Planned {
   type PlannedMessage = AuctionRuleParamsUpdate

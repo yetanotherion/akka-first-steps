@@ -26,7 +26,7 @@ import com.ion.trials.akka.auction.{
   BiddersToAuctions,
   Planned
 }
-import com.ion.trials.akka.routes.{AuctionRuleParams, AuctionRuleParamsUpdate}
+import com.ion.trials.akka.service.{AuctionRuleParams, AuctionRuleParamsUpdate}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._

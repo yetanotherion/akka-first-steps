@@ -9,19 +9,19 @@ import com.ion.trials.akka.actors.GatherAuctionsActor.AuctionInfos
 import com.ion.trials.akka.actors.GatherBidsOfBidderActor.BidsOfBidder
 import com.ion.trials.akka.auction.AuctionTypes
 import com.ion.trials.akka.auction.AuctionTypes._
-import com.ion.trials.akka.routes.{
-  AuctionHouseRoutes,
+import com.ion.trials.akka.service.{
+  AuctionHouseService,
   AuctionRuleParams,
   AuctionRuleParamsUpdate
 }
 import com.ion.trials.akka.util.{AuctionTestData, TestingTime}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpec}
 
-class ServerSpec
+class AuctionHouseServiceSpec
     extends WordSpec
     with Matchers
     with ScalatestRouteTest
-    with AuctionHouseRoutes
+    with AuctionHouseService
     with BeforeAndAfterEach
     with BeforeAndAfterAll
     with AuctionTestData {

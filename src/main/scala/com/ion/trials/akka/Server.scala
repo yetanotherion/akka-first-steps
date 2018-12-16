@@ -5,12 +5,12 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import com.ion.trials.akka.actors.AuctionHouseActor
-import com.ion.trials.akka.routes.AuctionHouseRoutes
+import com.ion.trials.akka.service.AuctionHouseService
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-object Server extends App with AuctionHouseRoutes {
+object Server extends App with AuctionHouseService {
 
   implicit val system = ActorSystem("auction-house")
   implicit val materializer = ActorMaterializer()

@@ -1,4 +1,4 @@
-package com.ion.trials.akka.routes
+package com.ion.trials.akka.service
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
@@ -32,10 +32,10 @@ final case class AuctionRuleParamsUpdate(startDate: Option[String],
                                          initialPrice: Option[Price],
                                          increment: Option[Int])
 
-trait AuctionHouseRoutes extends JsonSupport {
+trait AuctionHouseService extends JsonSupport {
   implicit def system: ActorSystem
 
-  lazy val log = Logging(system, classOf[AuctionHouseRoutes])
+  lazy val log = Logging(system, classOf[AuctionHouseService])
 
   def auctionHouseActor: ActorRef
 
