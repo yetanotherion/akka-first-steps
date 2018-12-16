@@ -5,13 +5,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.RouteConcatenation
 import akka.stream.ActorMaterializer
 import com.ion.trials.akka.actors.AuctionHouseActor
-import com.ion.trials.akka.service.{
-  AuctionHouseService,
-  AuctioneerService,
-  AuctioneersService,
-  BidderService,
-  SwaggerDocService
-}
+import com.ion.trials.akka.service._
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
 
 import scala.concurrent.Await
@@ -32,6 +26,7 @@ object Server extends App with RouteConcatenation {
       new BidderService(auctionHouseActor, system).routes ~
       new AuctioneersService(auctionHouseActor, system).routes ~
       new AuctioneerService(auctionHouseActor, system).routes ~
+      new AuctionService(auctionHouseActor, system).routes ~
       SwaggerDocService.routes)
   Http().bindAndHandle(routes, "localhost", 5000)
 

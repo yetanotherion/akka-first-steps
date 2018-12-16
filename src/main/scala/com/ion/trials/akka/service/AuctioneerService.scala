@@ -3,7 +3,6 @@ package com.ion.trials.akka.service
 import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Directives.{get, pathPrefix, pathEnd}
 import akka.http.scaladsl.server.{Route, RouteConcatenation}
 import com.ion.trials.akka.actors.AuctionHouseActor.{GetAuctioneersAuctions}
 import com.ion.trials.akka.actors.GatherAuctionsActor.AuctionInfos
@@ -22,7 +21,7 @@ class AuctioneerService(auctionHouseActor: ActorRef, system: ActorSystem)(
     extends ServiceHelper
     with RouteConcatenation {
 
-  lazy val log = Logging(system, classOf[AuctioneersService])
+  lazy val log = Logging(system, classOf[AuctioneerService])
 
   @GET
   @Operation(
