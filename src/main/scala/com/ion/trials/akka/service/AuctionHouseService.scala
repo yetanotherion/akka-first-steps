@@ -2,10 +2,8 @@ package com.ion.trials.akka.service
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.event.Logging
-import akka.http.scaladsl.model.{StatusCode, StatusCodes}
 import com.ion.trials.akka.auction.AuctionTypes._
 
-import scala.concurrent.duration._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.directives.MethodDirectives.post
@@ -13,12 +11,8 @@ import akka.http.scaladsl.server.directives.RouteDirectives.complete
 
 import scala.concurrent.{ExecutionContext, Future}
 import akka.pattern.ask
-import akka.util.Timeout
 import com.ion.trials.akka.actors.AuctionHouseActor._
-import com.ion.trials.akka.actors.GatherBidsOfBidderActor.BidsOfBidder
 import com.ion.trials.akka.actors.GatherAuctionsActor.AuctionInfos
-
-import scala.util.{Failure, Success}
 
 final case class AuctionRuleParams(startDate: String,
                                    endDate: String,
@@ -34,29 +28,9 @@ final case class AuctionRuleParamsUpdate(startDate: Option[String],
 
 class AuctionHouseService(auctionHouseActor: ActorRef, system: ActorSystem)(
     implicit executionContext: ExecutionContext)
-    extends JsonSupport {
-
-  implicit lazy val timeout = Timeout(5.seconds)
+    extends ServiceHelper {
 
   lazy val log = Logging(system, classOf[AuctionHouseService])
-
-  def completeAnswer[T](onLeft: (StatusCode, T) => Route,
-                        answer: Future[Answer[T]]) = {
-    onComplete(answer) {
-      case Success(answer) =>
-        answer.msg match {
-          case Left(r)  => onLeft(answer.status, r)
-          case Right(r) => complete((answer.status, r))
-        }
-      case Failure(ex) =>
-        complete(
-          (StatusCodes.InternalServerError,
-           s"Got exception ${ex.getMessage()}"))
-    }
-  }
-
-  def completeBidsOfBidderAnswer(answer: Future[Answer[BidsOfBidder]]) =
-    completeAnswer[BidsOfBidder]((s, b) => complete(s, b), answer)
 
   def completeAuctionInfoAnswer(answer: Future[Answer[AuctionInfo]]) =
     completeAnswer[AuctionInfo]((s, b) => complete(s, b), answer)
@@ -168,16 +142,6 @@ class AuctionHouseService(auctionHouseActor: ActorRef, system: ActorSystem)(
       )
     }
 
-  lazy val bidderRoutes =
-    path("bidder" / IntNumber) { bidderId =>
-      get {
-        val (bidderBids: Future[Answer[BidsOfBidder]]) =
-          (auctionHouseActor ? GetBidsOfBidderRequest(bidderId))
-            .mapTo[Answer[BidsOfBidder]]
-        completeBidsOfBidderAnswer(bidderBids)
-      }
-    }
-
-  lazy val routes = auctioneerRoutes ~ bidderRoutes
+  lazy val routes = auctioneerRoutes
 
 }

@@ -20,7 +20,9 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-stream" % akkaVersion,
   "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion,
-  "com.github.swagger-akka-http" %% "swagger-akka-http" % "1.0.0",
+  "javax.ws.rs" % "javax.ws.rs-api" % "2.0.1",
+  "com.github.swagger-akka-http" %% "swagger-akka-http" % "2.0.0",
+  "com.github.swagger-akka-http" %% "swagger-scala-module" % "2.0.2",
   "ch.megard" %% "akka-http-cors" % "0.3.0",
   "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 )

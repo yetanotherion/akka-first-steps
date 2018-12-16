@@ -5,7 +5,11 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.RouteConcatenation
 import akka.stream.ActorMaterializer
 import com.ion.trials.akka.actors.AuctionHouseActor
-import com.ion.trials.akka.service.{AuctionHouseService, SwaggerDocService}
+import com.ion.trials.akka.service.{
+  AuctionHouseService,
+  BidderService,
+  SwaggerDocService
+}
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
 
 import scala.concurrent.Await
@@ -22,7 +26,9 @@ object Server extends App with RouteConcatenation {
     system.actorOf(AuctionHouseActor.props, "auctionHouseActor")
 
   val routes = cors()(
-    new AuctionHouseService(auctionHouseActor, system).routes ~ SwaggerDocService.routes)
+    new AuctionHouseService(auctionHouseActor, system).routes ~
+      new BidderService(auctionHouseActor, system).routes ~
+      SwaggerDocService.routes)
   Http().bindAndHandle(routes, "localhost", 5000)
 
   println(s"Server online at http://localhost:5000/")
