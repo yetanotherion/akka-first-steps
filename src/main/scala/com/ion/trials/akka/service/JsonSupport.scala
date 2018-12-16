@@ -1,4 +1,4 @@
-package com.ion.trials.akka.routes
+package com.ion.trials.akka.service
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import com.ion.trials.akka.actors.GatherBidsOfBidderActor.BidsOfBidder

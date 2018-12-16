@@ -8,7 +8,7 @@ import com.ion.trials.akka.actors.AuctionHouseActor._
 import com.ion.trials.akka.actors.GatherAuctionsActor.AuctionInfos
 import com.ion.trials.akka.actors.GatherBidsOfBidderActor.BidsOfBidder
 import com.ion.trials.akka.auction.AuctionTypes._
-import com.ion.trials.akka.routes.AuctionRuleParamsUpdate
+import com.ion.trials.akka.service.AuctionRuleParamsUpdate
 import com.ion.trials.akka.util.{AuctionTestData, TestingTime}
 import org.scalatest.{
   BeforeAndAfterAll,
