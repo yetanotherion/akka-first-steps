@@ -19,7 +19,7 @@ class BidderService(auctionHouseActor: ActorRef, system: ActorSystem)(
     implicit executionContext: ExecutionContext)
     extends ServiceHelper {
 
-  lazy val log = Logging(system, classOf[AuctionHouseService])
+  lazy val log = Logging(system, classOf[BidInAuctionService])
 
   def completeBidsOfBidderAnswer(answer: Future[Answer[BidsOfBidder]]) =
     completeAnswer[BidsOfBidder]((s, b) => complete(s, b), answer)

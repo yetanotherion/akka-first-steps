@@ -192,7 +192,7 @@ class AuctionHouseServiceSpec
   val auctionHouseActor =
     system.actorOf(AuctionHouseActorInTest.props(testingTime))
 
-  val routes = (new AuctionHouseService(auctionHouseActor, system).routes
+  val routes = (new BidInAuctionService(auctionHouseActor, system).routes
     ~ new BidderService(auctionHouseActor, system).routes
     ~ new AuctioneersService(auctionHouseActor, system).routes
     ~ new AuctioneerService(auctionHouseActor, system).routes
