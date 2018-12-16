@@ -6,7 +6,7 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.directives.RouteDirectives.complete
 import akka.util.Timeout
 import com.ion.trials.akka.actors.GatherAuctionsActor.AuctionInfos
-import com.ion.trials.akka.auction.AuctionTypes.{Answer}
+import com.ion.trials.akka.auction.AuctionTypes.{Answer, AuctionInfo}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -17,6 +17,9 @@ trait ServiceHelper extends JsonSupport {
 
   def completeAuctionInfosAnswer(answer: Future[Answer[AuctionInfos]]) =
     completeAnswer[AuctionInfos]((s, b) => complete(s, b), answer)
+
+  def completeAuctionInfoAnswer(answer: Future[Answer[AuctionInfo]]) =
+    completeAnswer[AuctionInfo]((s, b) => complete(s, b), answer)
 
   def completeAnswer[T](onLeft: (StatusCode, T) => Route,
                         answer: Future[Answer[T]]) = {
