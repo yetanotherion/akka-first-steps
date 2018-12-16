@@ -5,7 +5,9 @@ import com.github.swagger.akka.model.Info
 
 object SwaggerDocService extends SwaggerHttpService {
   override val apiClasses =
-    Set(classOf[AuctionHouseService], classOf[BidderService])
+    Set(classOf[AuctionHouseService],
+        classOf[BidderService],
+        classOf[AuctioneersService])
   override val host = "localhost:5000"
   override val info = Info(version = "1.0")
   override val unwantedDefinitions =
